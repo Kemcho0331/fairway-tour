@@ -21,11 +21,11 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Fairway, rough, sand, green, water, trees, and wind
 - AI rivals with a live leaderboard
 - Generated music and sound effects
+- Customizable golfer with a name, skin tone, shirt, pants, and hat, plus a full swing animation
 - Progress saves in the browser (localStorage)
 
 ## Roadmap
 
-- Customizable golfer and player name
 - Seasons that change how the course plays
 - Sponsors with bonus goals
 - Tension music on the final hole of a major

@@ -24,6 +24,7 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Big Bend plays as a true desert course: rocky scrub off the fairway, mesquite, sotol, ocotillo, and boulders
 - Pot bunkers, desert waste areas, drop zones, and the occasional lone tree in the fairway
 - Pin positions rotate every time you play an event
+- Courses blend into their surroundings past the white out-of-bounds stakes: thickening woods, pine forest, coastal dunes and ocean, Hill Country limestone, desert mesas, and azaleas
 - Seasons that change every 3 events: soft spring ground with rain, firm and fast summer, gusty fall wind with leaves, slick winter greens with snow, each with its own music
 - Later events get narrower fairways, smaller greens, more trees, and stronger fields
 - Fairway, rough, sand, green, water, trees, and wind

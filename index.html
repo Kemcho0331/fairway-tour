@@ -750,11 +750,11 @@ function genCourse(seed, pars, diff, wet=0, opts={}){
     let arch='classic';
     if(pool){ const L=order[par]; arch=L[used[par]%L.length]; if(arch===prev && L.length>1){ used[par]++; arch=L[used[par]%L.length]; } used[par]++; }
     prev=arch;
-    const h=buildArchHole(arch, seed+i*97, par, diff, names[i], wet, opts, perm); h.theme=opts.theme||null; return h;
+    const h=buildArchHole(arch, seed+i*97, par, diff, names[i], wet, opts, perm); h.theme=opts.theme||null; h.surround=opts.surround||'forest'; return h;
   });
 }
 const WILLOW_ROUTES=[[[500,1880],[505,300]],[[500,1090],[520,310]],[[260,2290],[330,1450],[720,950],[685,330]]];
-WILLOW_HOLES.forEach((h,i)=>{ h.diff=0.15; h.treeMul=1; h.arch='handmade'; h.route=WILLOW_ROUTES[i]; h.slope=makeSlope(mulberry32(h.seed+999), h.green, 0.15); postHole(h, mulberry32(h.seed)); });
+WILLOW_HOLES.forEach((h,i)=>{ h.diff=0.15; h.treeMul=1; h.arch='handmade'; h.surround='forest'; h.route=WILLOW_ROUTES[i]; h.slope=makeSlope(mulberry32(h.seed+999), h.green, 0.15); postHole(h, mulberry32(h.seed)); });
 
 // payout share by finishing position, steep like a real tour purse
 const SHARES=[1,.58,.38,.27,.2,.15,.11,.08,.06,.05,.04];
@@ -763,11 +763,11 @@ function ev(id,name,holes,o){ return {id,name,holes,tagline:o.tagline||'',fee:o.
 const EVENTS = [
   ev('willow',    'Willow Creek Open',       WILLOW_HOLES,                                   {fee:0,     win:600,   wind:12, field:5,  boost:-.3,  diff:.15}),
   ev('bluebonnet','Bluebonnet Classic',      genCourse(1000,[4,3,5,4],.3,0,{pool:{3:['eden','long3','ringed'],4:['dogleg','classic','bottle','drivable'],5:['long','classic']}}),                   {fee:250,   win:1500,  wind:14, field:5,  boost:-.08, diff:.3}),
-  ev('piney',     'Piney Woods Classic',     genCourse(1500,[4,4,3,5,4],.4,0,{trees:1.8,pool:{3:['ringed','redan','eden'],4:['road','dogleg','bottle','classic'],5:['long','reachable']}}),   {fee:700,   win:3500,  wind:12, field:6,  boost:.06,  diff:.4}),
-  ev('gulf',      'Gulf Coast Invitational', genCourse(2000,[4,5,3,4,3,5],.5,.25,{pool:{3:['!island','carry','eden'],4:['cape','split','peninsula','leven'],5:['reachable','hell']}}),           {fee:1500,  win:7000,  wind:22, field:7,  boost:.18,  diff:.5}),
-  ev('hill',      'Hill Country Open',       genCourse(2500,[4,3,4,5,4,4],.6,0,{pool:{3:['biarritz','long3','redan'],4:['drivable','dogleg','leven','classic'],5:['hell','long']}}),               {fee:2500,  win:12000, wind:16, field:7,  boost:.24,  diff:.6}),
-  ev('bigbend',   'Big Bend Desert Classic', genCourse(3500,[4,5,3,4,4,3,5],.7,-.45,{sand:2,trees:.45,waste:true,theme:'desert',pool:{3:['redan','ringed','long3'],4:['split','drivable','dogleg','bottle'],5:['sahara','long']}}), {tagline:'Desert target golf. Miss the fairway and you play off rocks and scrub.', fee:4000, win:20000, wind:20, field:8, boost:.3, diff:.7}),
-  ev('masters',   'Texas Masters',           genCourse(4000,[4,3,5,4,4,3,5,4,4],.8,0,{pool:{3:['redan','eden','biarritz'],4:['dogleg','cape','drivable','road','leven','bottle'],5:['reachable','long']}}),         {fee:7000,  win:35000, wind:18, field:9,  boost:.42,  diff:.8}),
+  ev('piney',     'Piney Woods Classic',     genCourse(1500,[4,4,3,5,4],.4,0,{trees:1.8,surround:'pines',pool:{3:['ringed','redan','eden'],4:['road','dogleg','bottle','classic'],5:['long','reachable']}}),   {fee:700,   win:3500,  wind:12, field:6,  boost:.06,  diff:.4}),
+  ev('gulf',      'Gulf Coast Invitational', genCourse(2000,[4,5,3,4,3,5],.5,.25,{surround:'coast',pool:{3:['!island','carry','eden'],4:['cape','split','peninsula','leven'],5:['reachable','hell']}}),           {fee:1500,  win:7000,  wind:22, field:7,  boost:.18,  diff:.5}),
+  ev('hill',      'Hill Country Open',       genCourse(2500,[4,3,4,5,4,4],.6,0,{surround:'hill',pool:{3:['biarritz','long3','redan'],4:['drivable','dogleg','leven','classic'],5:['hell','long']}}),               {fee:2500,  win:12000, wind:16, field:7,  boost:.24,  diff:.6}),
+  ev('bigbend',   'Big Bend Desert Classic', genCourse(3500,[4,5,3,4,4,3,5],.7,-.45,{sand:2,trees:.45,waste:true,theme:'desert',surround:'desert',pool:{3:['redan','ringed','long3'],4:['split','drivable','dogleg','bottle'],5:['sahara','long']}}), {tagline:'Desert target golf. Miss the fairway and you play off rocks and scrub.', fee:4000, win:20000, wind:20, field:8, boost:.3, diff:.7}),
+  ev('masters',   'Texas Masters',           genCourse(4000,[4,3,5,4,4,3,5,4,4],.8,0,{surround:'azalea',pool:{3:['redan','eden','biarritz'],4:['dogleg','cape','drivable','road','leven','bottle'],5:['reachable','long']}}),         {fee:7000,  win:35000, wind:18, field:9,  boost:.42,  diff:.8}),
   ev('lonestar',  'Lone Star Championship',  genCourse(3000,[4,3,5,4,4,3,5,4,4],.9,0,{pool:{3:['!island','redan','biarritz'],4:['road','cape','leven','split','drivable','peninsula'],5:['hell','reachable']}}),         {fee:12000, win:60000, wind:22, field:10, boost:.5,   diff:.9}),
 ];
 EVENTS.forEach(e=>{ e.par=e.holes.reduce((a,h)=>a+h.par,0); e.purse=e.payouts.reduce((a,b)=>a+b,0); });
@@ -904,14 +904,14 @@ function rrect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y
 const MAPS = 0.5, VIS = 1.4;
 let hole=null, vis=null;
 function buildHole(h){
-  if(hole && hole!==h){ hole.vis=null; hole.map=null; hole.built=false; }
+  if(hole && hole!==h){ hole.vis=null; hole.sur=null; hole.map=null; hole.built=false; }
   hole=h;
   if(!h.built || h.builtSeason!==season().id){
     h.builtSeason=season().id;
     h.greenPts=blobPts(h.green);
     h.fringePts=blobPts({...h.green, rx:h.green.rx+18, ry:h.green.ry+18});
     h.sandPts=h.sand.map(blobPts); h.waterPts=h.water.map(blobPts);
-    buildTypeMap(h); placeTrees(h); h.vis=buildVisual(h); h.built=true;
+    buildTypeMap(h); placeTrees(h); h.vis=buildVisual(h); h.sur=buildSurround(h); h.built=true;
   }
   vis=h.vis;
 }
@@ -1032,6 +1032,80 @@ function drawMesquite(g,t,r,C){
   for(let k=0;k<9;k++){ const a=r()*Math.PI*2, d=r()*t.r*.7; g.fillStyle=C.trees[(r()*C.trees.length)|0]; g.globalAlpha=0.85; g.beginPath(); g.arc(t.x+Math.cos(a)*d,t.y+Math.sin(a)*d,t.r*(0.28+r()*0.18),0,7); g.fill(); }
   g.globalAlpha=1;
 }
+/* ---------- Surroundings past the out-of-bounds line ----------
+   Drawn once per hole at low detail: longer rough, then woods that thicken the farther out you look.
+   Each course gets its own setting (pines, coast, hill country, desert, azaleas). */
+const SMX=2000, SMY=800, SS=0.4;
+function shade(hex, k){ const n=parseInt(hex.slice(1),16); let r=n>>16, g=(n>>8)&255, b=n&255; const f=v=>Math.round(clamp(k<0?v*(1+k):v+(255-v)*k,0,255)); return '#'+((1<<24)|(f(r)<<16)|(f(g)<<8)|f(b)).toString(16).slice(1); }
+// a soft, wavy band around the hole so the edges of each zone never read as a box
+function wobblyRect(g,h,e,amp,ph){
+  const pts=[], W=h.w+2*e, H=h.H+2*e, step=40, n=(sv)=>amp*(Math.sin(sv*0.009+ph)*0.6+Math.sin(sv*0.023+ph*2.3)*0.4);
+  let sv=0;
+  for(let x=-e;x<h.w+e;x+=step,sv+=step) pts.push([x, -e-n(sv)]);
+  for(let y=-e;y<h.H+e;y+=step,sv+=step) pts.push([h.w+e+n(sv), y]);
+  for(let x=h.w+e;x>-e;x-=step,sv+=step) pts.push([x, h.H+e+n(sv)]);
+  for(let y=h.H+e;y>-e;y-=step,sv+=step) pts.push([-e-n(sv), y]);
+  closedPath(g,pts);
+}
+function ring(g,h,inf,color,soft){ const ph=(h.seed%97)*0.37+inf*0.01; g.fillStyle=color; for(let k=0;k<5;k++){ const e=inf+soft*(1-k/5); g.globalAlpha=k===4?1:0.2; wobblyRect(g,h,e,Math.min(70,soft*0.6+inf*0.12),ph); g.fill(); } g.globalAlpha=1; }
+function lowTree(g,x,y,R,col,r,pine){
+  g.fillStyle='rgba(0,0,0,.28)'; g.beginPath(); g.ellipse(x+R*.35,y+R*.45,R,R*.82,0.3,0,7); g.fill();
+  g.fillStyle=col;
+  if(pine){ g.beginPath(); for(let k=0;k<16;k++){ const a=k/16*Math.PI*2, d=k%2?R*.55:R; g.lineTo(x+Math.cos(a)*d,y+Math.sin(a)*d); } g.closePath(); g.fill(); g.fillStyle='rgba(255,255,255,.07)'; g.beginPath(); g.arc(x-R*.2,y-R*.2,R*.35,0,7); g.fill(); return; }
+  g.beginPath(); g.arc(x,y,R*.8,0,7); g.fill();
+  for(let k=0;k<3;k++){ const a=r()*6.28; g.beginPath(); g.arc(x+Math.cos(a)*R*.4,y+Math.sin(a)*R*.4,R*.55,0,7); g.fill(); }
+  g.fillStyle='rgba(255,255,255,.09)'; g.beginPath(); g.arc(x-R*.3,y-R*.3,R*.4,0,7); g.fill();
+}
+function buildSurround(h){
+  const W=h.w+SMX*2, HH=h.H+SMY*2, c=document.createElement('canvas'); c.width=Math.ceil(W*SS); c.height=Math.ceil(HH*SS);
+  const g=c.getContext('2d'); g.setTransform(SS,0,0,SS,SMX*SS,SMY*SS);
+  const r=mulberry32(h.seed*13+5), C=pal(h), SID=season().id, kind=h.surround||'forest';
+  const dOut=(x,y)=>{ const dx=Math.max(0,-x,x-h.w), dy=Math.max(0,-y,y-h.H); return Math.hypot(dx,dy); };
+  const area=(fn,step)=>{ for(let y=-SMY; y<h.H+SMY; y+=step) for(let x=-SMX; x<h.w+SMX; x+=step){ const jx=x+r()*step, jy=y+r()*step, d=dOut(jx,jy); if(d>0) fn(jx,jy,d); } };
+  let outer;
+  if(kind==='coast'){
+    outer=C.water;
+    g.fillStyle=outer; g.fillRect(-SMX,-SMY,W,HH);
+    g.strokeStyle='rgba(255,255,255,.18)'; g.lineWidth=3; g.lineCap='round';
+    area((x,y,d)=>{ if(d>420 && r()<0.5){ g.beginPath(); g.arc(x,y,20+r()*30,-2.4,-1.4); g.stroke(); } }, 70);
+    ring(g,h,380,'#e9dcb0',60);
+    area((x,y,d)=>{ if(d>230 && d<380 && r()<0.6){ g.fillStyle='rgba(170,140,90,.25)'; g.fillRect(x,y,26,3); } }, 40);
+    ring(g,h,240,'#b5ae76',70);
+    area((x,y,d)=>{ if(d>90 && d<260){ g.strokeStyle=r()<.5?'#8d8a52':'#a6a066'; g.lineWidth=2; g.beginPath(); for(let k=0;k<5;k++){ const a=-Math.PI/2+(r()*2-1)*0.8; g.moveTo(x,y); g.lineTo(x+Math.cos(a)*10,y+Math.sin(a)*10); } g.stroke(); } }, 26);
+    ring(g,h,100,C.rough,60);
+    area((x,y,d)=>{ if(d>40 && d<200 && r()<0.06) lowTree(g,x,y,14+r()*10,'#55703a',r); }, 60);
+  } else if(kind==='desert'){
+    outer=shade(C.rough,-0.07);
+    g.fillStyle=outer; g.fillRect(-SMX,-SMY,W,HH);
+    ring(g,h,120,C.rough,90);
+    area((x,y,d)=>{ g.fillStyle=r()<.5?'rgba(110,75,40,.18)':'rgba(245,225,185,.16)'; g.fillRect(x,y,5,5); }, 22);
+    for(let i=0;i<40;i++){ const x=-SMX+r()*W, y=-SMY+r()*HH;
+      if(dOut(x,y)<520) continue; const m={x,y,rx:180+r()*220,ry:120+r()*160,rot:r()*3,seed:(r()*1e6)|0};
+      const sh={...m,x:m.x+40,y:m.y+50}; closedPath(g,blobPts(sh)); g.fillStyle='rgba(60,30,15,.35)'; g.fill();
+      closedPath(g,blobPts(m)); g.fillStyle='#a9643c'; g.fill(); closedPath(g,blobPts({...m,rx:m.rx*0.82,ry:m.ry*0.82})); g.fillStyle='#bd7d50'; g.fill(); }
+    area((x,y,d)=>{ if(d<40) return; const k=r();
+      if(k<0.18){ const R=5+r()*10; g.fillStyle='rgba(60,40,20,.28)'; g.beginPath(); g.ellipse(x+3,y+4,R,R*.8,0,0,7); g.fill(); g.fillStyle=r()<.5?'#9c8a72':'#b3a184'; g.beginPath(); g.ellipse(x,y,R,R*.78,r()*3,0,7); g.fill(); }
+      else if(k<0.34){ g.strokeStyle=r()<.5?'#7f8a4c':'#97955a'; g.lineWidth=2; g.beginPath(); for(let q=0;q<10;q++){ const a=q/10*Math.PI*2; g.moveTo(x,y); g.lineTo(x+Math.cos(a)*10,y+Math.sin(a)*10); } g.stroke(); }
+      else if(k<0.40) drawMesquite(g,{x,y,r:16+r()*10},r,C); }, 48);
+  } else {
+    const pine=kind==='pines', hill=kind==='hill';
+    const cols=pine?['#1e3b25','#234528','#19331f']:hill?['#4d6a34','#567540','#435f2e']:C.trees;
+    outer=shade(cols[0], -0.25);
+    g.fillStyle=outer; g.fillRect(-SMX,-SMY,W,HH);
+    ring(g,h,320,shade(C.rough,-0.3),120);
+    ring(g,h,170,shade(C.rough,-0.14),90);
+    ring(g,h,70,C.rough,60);
+    area((x,y,d)=>{ g.fillStyle=r()<.5?'rgba(10,30,12,.3)':'rgba(170,200,120,.12)'; g.fillRect(x,y,5,5); }, 30);
+    area((x,y,d)=>{ if(d>420) return; const rad=60+r()*150, gr=g.createRadialGradient(x,y,0,x,y,rad); gr.addColorStop(0, r()<.5?'rgba(22,58,24,.22)':'rgba(120,170,85,.15)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.fillRect(x-rad,y-rad,rad*2,rad*2); }, 150);
+    if(SID==='spring') area((x,y,d)=>{ if(d<260 && r()<0.35){ g.fillStyle=r()<.75?'#5d79d6':'#f2f4f8'; for(let k=0;k<4;k++){ g.beginPath(); g.arc(x+(r()*2-1)*6,y+(r()*2-1)*6,2,0,7); g.fill(); } } }, 30);
+    if(hill) area((x,y,d)=>{ if(d>50 && d<700 && r()<0.06){ const m={x,y,rx:22+r()*40,ry:14+r()*24,rot:r()*3,seed:(r()*1e6)|0}; closedPath(g,blobPts({...m,x:x+5,y:y+6})); g.fillStyle='rgba(30,30,20,.3)'; g.fill(); closedPath(g,blobPts(m)); g.fillStyle='#cfc8b3'; g.fill(); g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x-m.rx*.4,y-m.ry*.3,m.rx*.6,3); } }, 60);
+    if(kind==='azalea') area((x,y,d)=>{ if(d>70 && d<340 && r()<0.16){ const col=['#e05a9a','#f08cbc','#f4f0f2','#c93a7a'][(r()*4)|0]; for(let q=0;q<3+((r()*3)|0);q++){ const bx=x+(r()*2-1)*22, by=y+(r()*2-1)*22, R=8+r()*8; g.fillStyle='rgba(0,0,0,.22)'; g.beginPath(); g.arc(bx+3,by+4,R,0,7); g.fill(); g.fillStyle=col; g.beginPath(); g.arc(bx,by,R,0,7); g.fill(); } } }, 40);
+    area((x,y,d)=>{ const p=clamp((d-(pine?50:80))/240,0,1); if(r()<p*0.95) lowTree(g,x,y,(pine?19:22)+r()*15+Math.min(10,d/80),cols[(r()*cols.length)|0],r,pine); }, pine?33:40);
+  }
+  if(SID==='winter'){ area((x,y,d)=>{ if(r()<0.5){ const rad=30+r()*70, gr=g.createRadialGradient(x,y,0,x,y,rad); gr.addColorStop(0,'rgba(242,247,250,.45)'); gr.addColorStop(1,'rgba(242,247,250,0)'); g.fillStyle=gr; g.fillRect(x-rad,y-rad,rad*2,rad*2); } }, 160); }
+  h.surOuter=outer;
+  return c;
+}
 function buildVisual(h){
   const [c,g]=mk(h.w,h.H), r=mulberry32(h.seed), C=pal(h), SID=season().id, DES=isDesert(h);
   g.fillStyle=C.rough; g.fillRect(0,0,h.w,h.H);
@@ -1080,7 +1154,7 @@ function buildVisual(h){
   if(h.drop) drawDrop(g,h.drop);
   seasonTop(g,h,r,SID);
   if(DES) desertScrub(g,h,r);
-  const stake=(x,y)=>{ g.fillStyle='rgba(0,0,0,.3)'; g.beginPath(); g.arc(x+2,y+2,4,0,7); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(x,y,4,0,7); g.fill(); };
+  const stake=(x,y)=>{ g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(x+5,y+3,6,2.6,0.4,0,7); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(x,y,4.2,0,7); g.fill(); g.strokeStyle='rgba(0,0,0,.25)'; g.lineWidth=1; g.stroke(); };
   for(let y=60;y<h.H;y+=150){ stake(10,y); stake(h.w-10,y); }
   for(let x=60;x<h.w;x+=150){ stake(x,10); stake(x,h.H-10); }
   h.trees.forEach(t=>{
@@ -1710,14 +1784,15 @@ function update(dt){
 }
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.fillStyle=pal().outside; ctx.fillRect(0,0,vw,vh);
+  ctx.fillStyle=(hole&&hole.surOuter)||pal().outside; ctx.fillRect(0,0,vw,vh);
   if(!hole) return;
   const z=cam.z, ox=vw/2-cam.x*z, oy=vh/2-cam.y*z;
   ctx.setTransform(dpr*z,0,0,dpr*z,dpr*ox,dpr*oy);
   const x0=Math.max(0,-ox/z), y0=Math.max(0,-oy/z), x1=Math.min(hole.w,(vw-ox)/z), y1=Math.min(hole.H,(vh-oy)/z);
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  if(hole.sur){ const sx0=Math.max(-SMX,-ox/z), sy0=Math.max(-SMY,-oy/z), sx1=Math.min(hole.w+SMX,(vw-ox)/z), sy1=Math.min(hole.H+SMY,(vh-oy)/z);
+    if(sx1>sx0 && sy1>sy0) ctx.drawImage(hole.sur, (sx0+SMX)*SS, (sy0+SMY)*SS, (sx1-sx0)*SS, (sy1-sy0)*SS, sx0, sy0, sx1-sx0, sy1-sy0); }
   if(x1>x0 && y1>y0) ctx.drawImage(vis, x0*VIS, y0*VIS, (x1-x0)*VIS, (y1-y0)*VIS, x0, y0, x1-x0, y1-y0);
-  ctx.strokeStyle='rgba(255,255,255,.45)'; ctx.lineWidth=2/z; ctx.setLineDash([10/z,8/z]); ctx.strokeRect(0,0,hole.w,hole.H); ctx.setLineDash([]);
   drawCup(z); drawFx(z);
   if(state!=='menu'){ drawBall(z); drawGolferWorld(z); }
   if(aim && state==='ready') drawAim(z);

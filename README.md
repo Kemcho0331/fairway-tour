@@ -20,6 +20,7 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Entry fees and steep, tour-style payouts
 - Pro shop with four club tiers, a Caddie and Veteran Caddie, special balls, and ball colors
 - Sloped greens with break arrows
+- Seasons that change every 3 events: soft spring ground with rain, firm and fast summer, gusty fall wind with leaves, slick winter greens with snow, each with its own music
 - Later events get narrower fairways, smaller greens, more trees, and stronger fields
 - Fairway, rough, sand, green, water, trees, and wind
 - AI rivals (fields of 6 to 11) with a live leaderboard
@@ -29,6 +30,5 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 
 ## Roadmap
 
-- Seasons that change how the course plays
 - Sponsors with bonus goals
 - Tension music on the final hole of a major

@@ -86,6 +86,15 @@ button:focus-visible{outline:3px solid var(--flag);outline-offset:2px}
 .facts div{background:var(--board);padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .facts b{font:700 22px/1 var(--display);font-variant-numeric:tabular-nums}
 .career{font:500 13px/1.45 var(--body);color:var(--muted);border-top:1px solid var(--rule);padding-top:12px}
+.season{border-radius:8px;padding:12px 14px 13px;display:flex;flex-direction:column;gap:6px;background:var(--sc,#3f5fb5);color:#fff;position:relative;overflow:hidden}
+.season::after{content:"";position:absolute;right:-24px;bottom:-34px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
+.season-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:600 11px/1.2 var(--body);letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.season-name{font:800 italic 34px/.9 var(--display);text-transform:uppercase}
+.season-blurb{font:500 13.5px/1.4 var(--body)}
+.season-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font:600 12px/1.2 var(--body);flex-wrap:wrap}
+.spips{display:flex;gap:5px}
+.spips i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.3)}
+.spips i.on{background:#fff}
 .unlock{background:var(--pine-2);color:#fff;border-radius:6px;padding:10px 12px;font:700 17px/1.2 var(--display);text-transform:uppercase;letter-spacing:.04em}
 .unlock span{color:var(--flag)}
 table.lb{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
@@ -261,6 +270,19 @@ const LOOK = {
   pants:[{id:'khaki',name:'Khaki',c:'#c9b58a'},{id:'navy',name:'Navy',c:'#24324f'},{id:'white',name:'White',c:'#eceee6'},{id:'charcoal',name:'Charcoal',c:'#3d4247'},{id:'olive',name:'Olive',c:'#6b7445'}],
   hats:[{id:'cap',name:'Cap'},{id:'visor',name:'Visor'},{id:'bucket',name:'Bucket'},{id:'none',name:'No hat'}],
 };
+const SEASONS = [
+  {id:'spring', name:'Spring', color:'#3f5fb5', blurb:'Soft ground and spring showers. The ball stops quickly and greens run a little slow.', roll:0.75, fric:{[FAIR]:1.15,[GREEN]:1.12,[ROUGH]:1.05}, carry:1, wind:1, rival:0, weather:'rain'},
+  {id:'summer', name:'Summer', color:'#b97c0c', blurb:'Firm, fast fairways and quick greens. The air is calm, so the ball runs out a long way.', roll:1.3, fric:{[FAIR]:0.82,[GREEN]:0.9,[ROUGH]:0.95}, carry:1.02, wind:0.6, rival:-0.03, weather:'sun'},
+  {id:'fall',   name:'Fall',   color:'#a3461f', blurb:'Gusty wind that shifts between shots, and leaves in the rough make it play heavier.', roll:1, fric:{}, carry:1, wind:1.35, gusty:true, roughLie:0.7, rival:0.06, weather:'leaves'},
+  {id:'winter', name:'Winter', color:'#3f6c8a', blurb:'Cold air carries shorter. Frosty greens are extra slippery, so slopes take more break.', roll:1.15, fric:{[FAIR]:0.9,[GREEN]:0.78}, carry:0.95, wind:1.1, rival:0.08, weather:'snow'},
+];
+const EVENTS_PER_SEASON = 3;
+const SEASON_COL = {
+  spring:{},
+  summer:{outside:'#26402a', rough:'#4b7b35', cut:'#5d8c40', fair:'#77a94c', tee:'#80b257', green:'#87c25b', green2:'#a9d878', sand:'#efdfab', water:'#2a78ad', water2:'#4ea6d6', trees:['#2f5a26','#36632a','#2a5124']},
+  fall:  {outside:'#2c3a24', rough:'#5b6f34', cut:'#6a7d3c', fair:'#7f9a4a', tee:'#86a052', green:'#7cb25a', green2:'#9bcb76', trees:['#b8502a','#d0802e','#8f3a22','#c9a23a','#4f6a2c']},
+  winter:{outside:'#2a3a33', rough:'#6e846f', cut:'#7a917a', fair:'#89a383', tee:'#91ab8b', green:'#85ac7e', green2:'#a8c8a1', sand:'#e6ddc4', sandEdge:'#bfb391', water:'#3c6d8c', water2:'#6a9ab6', bank:'#e6f2f6', trees:['#1f3f2e','#27483a','#1b3829']},
+};
 const RIVALS = [
   {name:'Duke Hollis',   skill:.62},
   {name:'Marco Vega',    skill:.52},
@@ -432,7 +454,7 @@ function rollDist(v, fric){ let d=0; const dt=1/120; let n=0; while(v>4 && n++<5
 
 /* ---------- Save ---------- */
 const SAVE_KEY = 'fairway-tour-v2', OLD_KEY = 'fairway-tour-v1';
-function defaultSave(){ return {cash:0, muted:false, caddie:0, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
+function defaultSave(){ return {cash:0, muted:false, caddie:0, season:{idx:0, played:0, year:1, wins:0, cash:0}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
 function loadSave(){
   const d=defaultSave();
   try{
@@ -455,6 +477,9 @@ const esc = t => String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'
 function playerName(){ const n=(save.golfer.name||'').trim(); return n||'You'; }
 function lookColors(){ const g=save.golfer; const pick=(arr,id)=>(arr.find(x=>x.id===id)||arr[0]).c;
   return {skin:LOOK.skins[g.skin]||LOOK.skins[1], shirt:pick(LOOK.shirts,g.shirt), pants:pick(LOOK.pants,g.pants), hat:g.hat, hatC:pick(LOOK.shirts,g.hatColor)}; }
+function season(){ return SEASONS[(save.season&&save.season.idx)||0]; }
+function pal(){ return {...COL, ...SEASON_COL[season().id]}; }
+function fricOf(t){ const T=TER[t]||TER[FAIR]; return T.fric*((season().fric||{})[t]||1); }
 function rec(id){ return save.events[id] || (save.events[id]={played:0,wins:0,bestFinish:null,bestScore:null}); }
 function unlocked(i){ return i===0 || (save.events[EVENTS[i-1].id]||{}).wins>0; }
 
@@ -463,14 +488,14 @@ function ballDef(){ return BALLS.find(b=>b.id===save.ball)||BALLS[0]; }
 function colorDef(){ return COLORS.find(c=>c.id===save.color)||COLORS[0]; }
 function eff(i){
   const c=CLUBS[i], t=save.gear[c.id]||0, b=ballDef(), e={...c, tier:t};
-  if(c.putt){ e.capture=260*(1+0.15*t); e.pull=6+2*t; e.spread=1; e.wind=1; e.hook=1; e.total=rollDist(c.v, TER[GREEN].fric); return e; }
-  e.carry=c.carry*(1+(c.id==='driver'?0.04:0.03)*t)*(b.carry||1);
-  e.keep=c.keep*(b.keep||1);
+  if(c.putt){ e.capture=200*(1+0.12*t); e.pull=0; e.spread=1; e.wind=1; e.hook=1; e.total=rollDist(c.v, fricOf(GREEN)); return e; }
+  e.carry=c.carry*(1+(c.id==='driver'?0.04:0.03)*t)*(b.carry||1)*season().carry;
+  e.keep=c.keep*(b.keep||1)*season().roll;
   e.spread=1-(c.id==='iron'?0.15:c.id==='wedge'?0.1:0.05)*t;
   e.wind=1-(c.id==='driver'?0.1:0.03)*t;
   e.hook=1-0.1*t;
   e.sand=c.id==='wedge'?Math.min(0.99,0.85+0.035*t):0.55;
-  e.total=e.carry+rollDist(e.carry/c.T*e.keep, TER[FAIR].fric);
+  e.total=e.carry+rollDist(e.carry/c.T*e.keep, fricOf(FAIR));
   return e;
 }
 
@@ -478,28 +503,27 @@ function eff(i){
 const Sound = (() => {
   let ac=null, master, musicBus, sfxBus, delay, noiseBuf, nextT=0, step=0, mel=4;
   let muted = save.muted;
-  const BPM=86, EIGHTH=60/BPM/2;
+  const MOODS = {
+    spring:{bpm:88,  wave:'triangle', oct:0,  density:.48, chords:[{root:41,notes:[53,57,60,64]},{root:38,notes:[50,53,57,60]},{root:43,notes:[55,58,62,65]},{root:36,notes:[52,55,58,60]}], scale:[60,62,65,67,69,72,74,77,79,81]},
+    summer:{bpm:100, wave:'triangle', oct:0,  density:.6,  chords:[{root:36,notes:[52,55,59,62]},{root:45,notes:[52,57,60,64]},{root:38,notes:[53,57,60,62]},{root:43,notes:[53,55,59,62]}], scale:[60,62,64,67,69,72,74,76,79,81]},
+    fall:  {bpm:78,  wave:'triangle', oct:0,  density:.38, chords:[{root:45,notes:[55,57,60,64]},{root:41,notes:[53,57,60,64]},{root:38,notes:[50,53,57,60]},{root:40,notes:[52,55,59,62]}], scale:[57,60,62,64,67,69,72,74,76,79]},
+    winter:{bpm:70,  wave:'sine',     oct:12, density:.42, chords:[{root:39,notes:[55,58,62,63]},{root:36,notes:[51,55,58,62]},{root:44,notes:[56,60,63,67]},{root:46,notes:[53,58,62,65]}], scale:[63,65,67,70,72,75,77,79,82,84]},
+  };
+  let mood=MOODS.spring, EIGHTH=60/mood.bpm/2;
   const mtof = m => 440*Math.pow(2,(m-69)/12);
-  const CHORDS = [
-    {root:41, notes:[53,57,60,64]},
-    {root:38, notes:[50,53,57,60]},
-    {root:43, notes:[55,58,62,65]},
-    {root:36, notes:[52,55,58,60]},
-  ];
-  const SCALE = [60,62,65,67,69,72,74,77,79,81];
   function env(g,t,vol,a,d){ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+d); }
   function tone(f,t,dur,type,vol,dest,a=0.004,fEnd){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.setValueAtTime(f,t); if(fEnd) o.frequency.exponentialRampToValueAtTime(fEnd,t+dur); env(g,t,vol,a,dur); o.connect(g); g.connect(dest); o.start(t); o.stop(t+a+dur+0.05); }
   function noise(t,dur,vol,type,f,q,dest,fEnd,a=0.004){ const s=ac.createBufferSource(); s.buffer=noiseBuf; const fl=ac.createBiquadFilter(); fl.type=type; fl.frequency.setValueAtTime(f,t); if(fEnd) fl.frequency.exponentialRampToValueAtTime(fEnd,t+dur); fl.Q.value=q; const g=ac.createGain(); env(g,t,vol,a,dur); s.connect(fl); fl.connect(g); g.connect(dest); s.start(t, Math.random()*1.5); s.stop(t+a+dur+0.05); }
   function pad(f,t,dur){ [-6,6].forEach(dt=>{ const o=ac.createOscillator(), g=ac.createGain(), lp=ac.createBiquadFilter(); o.type='triangle'; o.frequency.value=f; o.detune.value=dt; lp.type='lowpass'; lp.frequency.value=900; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.03,t+0.6); g.gain.setValueAtTime(0.03,t+dur-0.4); g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.3); o.connect(lp); lp.connect(g); g.connect(musicBus); o.start(t); o.stop(t+dur+0.4); }); }
-  function pluck(f,t){ const o=ac.createOscillator(), g=ac.createGain(); o.type='triangle'; o.frequency.value=f; env(g,t,0.075,0.005,0.5); o.connect(g); g.connect(musicBus); g.connect(delay); o.start(t); o.stop(t+0.6); }
+  function pluck(f,t){ const o=ac.createOscillator(), g=ac.createGain(); o.type=mood.wave; o.frequency.value=f; env(g,t,mood.wave==='sine'?0.09:0.075,0.005,mood.wave==='sine'?0.9:0.5); o.connect(g); g.connect(musicBus); g.connect(delay); o.start(t); o.stop(t+0.6); }
   function playStep(s,t){
-    const bar=Math.floor(s/8), pos=s%8, ch=CHORDS[bar];
+    const bar=Math.floor(s/8), pos=s%8, ch=mood.chords[bar];
     if(pos===0) ch.notes.forEach(m=>pad(mtof(m),t,EIGHTH*8));
     if(pos===0||pos===4){ tone(mtof(ch.root),t,EIGHTH*2.6,'sine',0.17,musicBus,0.01); tone(110,t,0.16,'sine',0.16,musicBus,0.003,42); }
     if(pos===6) tone(mtof(ch.root+7),t,EIGHTH*1.4,'sine',0.11,musicBus,0.01);
     if(pos%2===1) noise(t,0.035,0.022,'highpass',7000,0.7,musicBus);
     if(pos===2||pos===6) noise(t,0.07,0.04,'bandpass',1900,1.2,musicBus);
-    if(Math.random() < (pos%2===0 ? 0.48 : 0.2)){ mel=clamp(mel+[-2,-1,-1,1,1,2][Math.random()*6|0],0,SCALE.length-1); pluck(mtof(SCALE[mel]),t); }
+    if(Math.random() < (pos%2===0 ? mood.density : mood.density*0.42)){ mel=clamp(mel+[-2,-1,-1,1,1,2][Math.random()*6|0],0,mood.scale.length-1); pluck(mtof(mood.scale[mel]+mood.oct),t); }
   }
   function schedule(){ if(!ac) return; while(nextT < ac.currentTime+0.25){ playStep(step,nextT); nextT+=EIGHTH; step=(step+1)%32; } }
   function init(){
@@ -520,6 +544,7 @@ const Sound = (() => {
   const now = () => ac.currentTime+0.01;
   return {
     init,
+    setSeason(id){ mood=MOODS[id]||MOODS.spring; EIGHTH=60/mood.bpm/2; if(ac&&delay) delay.delayTime.setTargetAtTime(EIGHTH*1.5, ac.currentTime, 0.3); },
     get muted(){ return muted; },
     setMuted(m){ muted=m; if(ac) master.gain.setTargetAtTime(m?0:0.9, ac.currentTime, 0.05); },
     suspend(){ if(ac && ac.state==='running') ac.suspend(); },
@@ -555,7 +580,8 @@ let hole=null, vis=null;
 function buildHole(h){
   if(hole && hole!==h){ hole.vis=null; hole.map=null; hole.built=false; }
   hole=h;
-  if(!h.built){
+  if(!h.built || h.builtSeason!==season().id){
+    h.builtSeason=season().id;
     h.greenPts=blobPts(h.green);
     h.fringePts=blobPts({...h.green, rx:h.green.rx+18, ry:h.green.ry+18});
     h.sandPts=h.sand.map(blobPts); h.waterPts=h.water.map(blobPts);
@@ -597,29 +623,52 @@ function placeTrees(h){
   h.trees=trees;
 }
 function mk(w,h){ const c=document.createElement('canvas'); c.width=Math.ceil(w*VIS); c.height=Math.ceil(h*VIS); const g=c.getContext('2d'); g.setTransform(VIS,0,0,VIS,0,0); return [c,g]; }
+// season dressing under the fairways (flowers, dry patches, snow) and on top (leaves, frost)
+function seasonGround(g,h,r,SID){
+  if(SID==='spring'){
+    for(let i=0;i<h.H/4;i++){ const x=r()*h.w, y=r()*h.H, col=r()<.72?'#5d79d6':(r()<.5?'#f2f4f8':'#e48fb7'); g.fillStyle=col;
+      for(let k=0;k<4;k++){ g.beginPath(); g.arc(x+(r()*2-1)*6, y+(r()*2-1)*6, 1.7, 0, 7); g.fill(); } }
+  } else if(SID==='summer'){
+    for(let i=0;i<h.H/35;i++){ const x=r()*h.w, y=r()*h.H, rad=40+r()*90, gr=g.createRadialGradient(x,y,0,x,y,rad); gr.addColorStop(0,'rgba(200,172,92,.32)'); gr.addColorStop(1,'rgba(200,172,92,0)'); g.fillStyle=gr; g.fillRect(x-rad,y-rad,rad*2,rad*2); }
+  } else if(SID==='winter'){
+    for(let i=0;i<h.H/18;i++){ const x=r()*h.w, y=r()*h.H, rad=30+r()*80, gr=g.createRadialGradient(x,y,0,x,y,rad); gr.addColorStop(0,'rgba(242,247,250,.42)'); gr.addColorStop(1,'rgba(242,247,250,0)'); g.fillStyle=gr; g.fillRect(x-rad,y-rad,rad*2,rad*2); }
+  }
+}
+function seasonTop(g,h,r,SID){
+  if(SID==='fall'){
+    const cols=['#c4622d','#d88a2c','#a8432a','#d9b13e','#8a5a2b'];
+    for(let i=0;i<h.H*0.9;i++){ const x=r()*h.w, y=r()*h.H, t=terrainAt(x,y), rot=r()*6.28, ci=(r()*cols.length)|0;
+      if(t===WATER||t===GREEN||t===SAND||(t===FAIR&&r()<0.85)) continue;
+      g.save(); g.translate(x,y); g.rotate(rot); g.globalAlpha=0.85; g.fillStyle=cols[ci]; g.beginPath(); g.ellipse(0,0,3.4,1.8,0,0,7); g.fill(); g.restore(); }
+  } else if(SID==='winter'){
+    g.fillStyle='rgba(255,255,255,.32)';
+    for(let i=0;i<h.w*h.H/80;i++) g.fillRect(r()*h.w, r()*h.H, 1.4, 1.4);
+  }
+}
 function buildVisual(h){
-  const [c,g]=mk(h.w,h.H), r=mulberry32(h.seed);
-  g.fillStyle=COL.rough; g.fillRect(0,0,h.w,h.H);
+  const [c,g]=mk(h.w,h.H), r=mulberry32(h.seed), C=pal(), SID=season().id;
+  g.fillStyle=C.rough; g.fillRect(0,0,h.w,h.H);
   for(let i=0;i<Math.round(h.H/30);i++){ const x=r()*h.w, y=r()*h.H, rad=60+r()*150; const gr=g.createRadialGradient(x,y,0,x,y,rad); gr.addColorStop(0, r()<.5?'rgba(22,58,24,.22)':'rgba(120,170,85,.15)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.fillRect(x-rad,y-rad,rad*2,rad*2); }
   const n=Math.floor(h.w*h.H/28);
   for(let i=0;i<n;i++){ g.fillStyle=r()<.5?'rgba(16,44,18,.32)':'rgba(150,196,104,.2)'; g.fillRect(r()*h.w,r()*h.H,1.6,1.6); }
-  g.lineCap=g.lineJoin='round'; g.strokeStyle=COL.cut; g.fillStyle=COL.cut;
+  seasonGround(g,h,r,SID);
+  g.lineCap=g.lineJoin='round'; g.strokeStyle=C.cut; g.fillStyle=C.cut;
   for(const f of h.fairway){ g.lineWidth=f.w+26; openPath(g,f.pts); g.stroke(); }
   closedPath(g, blobPts({...h.green, rx:h.green.rx+32, ry:h.green.ry+32})); g.fill();
   rrect(g,h.tee.x-64,h.tee.y-44,128,88,16); g.fill();
   const [fc,fg]=mk(h.w,h.H);
-  fg.lineCap=fg.lineJoin='round'; fg.strokeStyle=COL.fair; fg.fillStyle=COL.fair;
+  fg.lineCap=fg.lineJoin='round'; fg.strokeStyle=C.fair; fg.fillStyle=C.fair;
   for(const f of h.fairway){ fg.lineWidth=f.w; openPath(fg,f.pts); fg.stroke(); }
   closedPath(fg,h.fringePts); fg.fill();
-  fg.fillStyle=COL.tee; rrect(fg,h.tee.x-55,h.tee.y-35,110,70,10); fg.fill();
+  fg.fillStyle=C.tee; rrect(fg,h.tee.x-55,h.tee.y-35,110,70,10); fg.fill();
   fg.globalCompositeOperation='source-atop'; fg.fillStyle='rgba(255,255,255,.075)';
   for(let y=0;y<h.H;y+=64) fg.fillRect(0,y,h.w,32);
   g.drawImage(fc,0,0,h.w,h.H);
-  [[-38,-22],[38,-22]].forEach(([dx,dy])=>{ g.fillStyle='rgba(0,0,0,.25)'; g.beginPath(); g.arc(h.tee.x+dx+2,h.tee.y+dy+2,6,0,7); g.fill(); g.fillStyle=COL.flag; g.beginPath(); g.arc(h.tee.x+dx,h.tee.y+dy,6,0,7); g.fill(); });
+  [[-38,-22],[38,-22]].forEach(([dx,dy])=>{ g.fillStyle='rgba(0,0,0,.25)'; g.beginPath(); g.arc(h.tee.x+dx+2,h.tee.y+dy+2,6,0,7); g.fill(); g.fillStyle=C.flag; g.beginPath(); g.arc(h.tee.x+dx,h.tee.y+dy,6,0,7); g.fill(); });
   const [gc,gg]=mk(h.w,h.H); const G=h.green;
   closedPath(gg,h.greenPts);
   const rg=gg.createRadialGradient(G.x-G.rx*.3,G.y-G.ry*.35,10,G.x,G.y,Math.max(G.rx,G.ry)*1.25);
-  rg.addColorStop(0,COL.green2); rg.addColorStop(1,COL.green); gg.fillStyle=rg; gg.fill();
+  rg.addColorStop(0,C.green2); rg.addColorStop(1,C.green); gg.fillStyle=rg; gg.fill();
   gg.globalCompositeOperation='source-atop'; gg.fillStyle='rgba(255,255,255,.07)';
   gg.save(); gg.translate(G.x,G.y); gg.rotate(0.7); for(let x=-420;x<420;x+=34) gg.fillRect(x,-420,17,840); gg.restore();
   g.drawImage(gc,0,0,h.w,h.H);
@@ -635,26 +684,28 @@ function buildVisual(h){
     g.restore();
   }
   h.sandPts.forEach((p,i)=>{ const b=h.sand[i];
-    g.save(); closedPath(g,p); g.fillStyle=COL.sand; g.fill(); g.clip();
+    g.save(); closedPath(g,p); g.fillStyle=C.sand; g.fill(); g.clip();
     for(let k=0;k<500;k++){ g.fillStyle=r()<.5?'rgba(150,120,60,.28)':'rgba(255,255,240,.5)'; g.fillRect(b.x+(r()*2-1)*Math.max(b.rx,b.ry)*1.3, b.y+(r()*2-1)*Math.max(b.rx,b.ry)*1.3, 1.5,1.5); }
     closedPath(g,p); g.lineWidth=12; g.strokeStyle='rgba(140,110,50,.3)'; g.stroke(); g.restore();
-    closedPath(g,p); g.lineWidth=2.5; g.strokeStyle=COL.sandEdge; g.stroke(); });
+    closedPath(g,p); g.lineWidth=2.5; g.strokeStyle=C.sandEdge; g.stroke(); });
   h.waterPts.forEach((p,i)=>{ const b=h.water[i], m=Math.max(b.rx,b.ry);
-    g.save(); closedPath(g,p); const wg=g.createLinearGradient(b.x-m,b.y-m,b.x+m,b.y+m); wg.addColorStop(0,COL.water2); wg.addColorStop(1,COL.water); g.fillStyle=wg; g.fill(); g.clip();
+    g.save(); closedPath(g,p); const wg=g.createLinearGradient(b.x-m,b.y-m,b.x+m,b.y+m); wg.addColorStop(0,C.water2); wg.addColorStop(1,C.water); g.fillStyle=wg; g.fill(); g.clip();
     g.strokeStyle='rgba(255,255,255,.2)'; g.lineWidth=2; g.lineCap='round';
     for(let k=0;k<18;k++){ const x=b.x+(r()*2-1)*m*.8, y=b.y+(r()*2-1)*m*.8, rad=12+r()*22, a=-Math.PI*0.75+r()*0.4; g.beginPath(); g.arc(x,y,rad,a,a+0.9); g.stroke(); }
     closedPath(g,p); g.lineWidth=16; g.strokeStyle='rgba(8,36,64,.25)'; g.stroke(); g.restore();
-    closedPath(g,p); g.lineWidth=4; g.strokeStyle=COL.bank; g.stroke(); });
+    closedPath(g,p); g.lineWidth=4; g.strokeStyle=C.bank; g.stroke(); });
+  seasonTop(g,h,r,SID);
   const stake=(x,y)=>{ g.fillStyle='rgba(0,0,0,.3)'; g.beginPath(); g.arc(x+2,y+2,4,0,7); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(x,y,4,0,7); g.fill(); };
   for(let y=60;y<h.H;y+=150){ stake(10,y); stake(h.w-10,y); }
   for(let x=60;x<h.w;x+=150){ stake(x,10); stake(x,h.H-10); }
   h.trees.forEach(t=>{
     g.fillStyle='rgba(6,22,8,.3)'; g.beginPath(); g.ellipse(t.x+t.r*.4,t.y+t.r*.5,t.r*1.05,t.r*.85,0.3,0,7); g.fill();
-    g.fillStyle=COL.trees[(r()*3)|0];
+    g.fillStyle=C.trees[(r()*C.trees.length)|0];
     for(let k=0;k<6;k++){ const a=k/6*Math.PI*2+r(); g.beginPath(); g.arc(t.x+Math.cos(a)*t.r*.42,t.y+Math.sin(a)*t.r*.42,t.r*.56,0,7); g.fill(); }
     g.beginPath(); g.arc(t.x,t.y,t.r*.78,0,7); g.fill();
     g.fillStyle='rgba(150,205,110,.22)'; g.beginPath(); g.arc(t.x-t.r*.28,t.y-t.r*.32,t.r*.45,0,7); g.fill();
     g.fillStyle='rgba(190,230,150,.18)'; g.beginPath(); g.arc(t.x-t.r*.36,t.y-t.r*.4,t.r*.2,0,7); g.fill();
+    if(SID==='winter'){ g.fillStyle='rgba(244,249,252,.62)'; g.beginPath(); g.ellipse(t.x-t.r*.2,t.y-t.r*.3,t.r*.5,t.r*.3,-0.3,0,7); g.fill(); }
   });
   return c;
 }
@@ -744,7 +795,7 @@ function resize(){ dpr=Math.min(2,window.devicePixelRatio||1); const r=cv.getBou
 
 const gauss=()=>{ let u=0,v=0; while(!u) u=Math.random(); while(!v) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
 function rivalScore(par, skill, diff, form){
-  let rel=Math.round(0.30-0.62*skill+0.25*diff+form+0.62*gauss());
+  let rel=Math.round(0.30-0.62*skill+0.25*diff+season().rival+form+0.62*gauss());
   if(rel<=-2){ if(par===3) rel=Math.random()<0.08?-2:-1; else if(par===4) rel=Math.random()<0.15?-2:-1; else rel=-2; }
   return par+Math.min(3,rel);
 }
@@ -754,7 +805,14 @@ function newTournament(){
   playerScores=[]; duckUsed=false;
   startHole(0);
 }
-function rollWind(){ const mph=Math.round(Math.random()*EV.windMax), a=Math.random()*Math.PI*2; wind={mph,a,ax:Math.cos(a)*mph*5,ay:Math.sin(a)*mph*5}; }
+function setWind(mph,a,base){ wind={mph,a,ax:Math.cos(a)*mph*5,ay:Math.sin(a)*mph*5,base:base||wind.base}; }
+function rollWind(){ const mph=Math.round(Math.random()*EV.windMax*season().wind), a=Math.random()*Math.PI*2; setWind(mph,a,{mph,a}); }
+function gust(){
+  const b=wind.base; if(!b) return;
+  const mph=Math.round(clamp(b.mph*(0.55+Math.random()*0.9)+(Math.random()*4-2),0,40)), a=b.a+(Math.random()*2-1)*0.35, jump=mph-wind.mph;
+  setWind(mph,a);
+  if(Math.abs(jump)>=5) toast(jump>0?`Gust! Wind up to ${mph} mph`:`Wind dropped to ${mph} mph`,1500);
+}
 function startHole(i){
   holeIdx=i; buildHole(HOLES[i]); strokes=0; rollWind(); fx=[]; aim=null;
   ball={x:hole.tee.x,y:hole.tee.y,z:0,vx:0,vy:0,t:0,T:1,h:0,sink:0,holed:false,hidden:false,trail:[],keep:1,windMult:1,capture:260,pull:6,lipped:false};
@@ -764,7 +822,7 @@ function startHole(i){
 }
 function beginIntro(){
   state='intro'; introT=2.6;
-  $('#bnTop').textContent=`${EV.name} · Hole ${holeIdx+1} of ${HOLES.length}`;
+  $('#bnTop').textContent=`${season().name} · ${EV.name} · Hole ${holeIdx+1} of ${HOLES.length}`;
   $('#bnMain').textContent=hole.name;
   $('#bnSub').textContent=`Par ${hole.par} · ${hole.yards} yds`;
   $('#banner').classList.add('show');
@@ -772,6 +830,7 @@ function beginIntro(){
 function endIntro(){ $('#banner').classList.remove('show'); setOverview(false); setReady(); }
 function setReady(){
   state='ready'; ball.lipped=false; gpos={x:ball.x,y:ball.y}; swing.phase='address'; swing.cur=G_A0;
+  if(season().gusty && strokes>0) gust();
   autoIdx=clubIdx=pickClub(); renderRack(); updateHud();
   if(holeIdx===0 && strokes===0 && save.stats.events<2) toast('Drag back from anywhere, then let go to swing', 0);
 }
@@ -784,7 +843,7 @@ function pickClub(){
   if(d<=ir*0.95) return 1;
   return 0;
 }
-function lieFactor(e, lie){ if(lie===SAND) return e.putt?0.55:e.sand; return TER[lie]?TER[lie].lie:1; }
+function lieFactor(e, lie){ if(lie===SAND) return e.putt?0.55:e.sand; if(lie===ROUGH && season().roughLie && !e.putt) return season().roughLie; return TER[lie]?TER[lie].lie:1; }
 
 function shoot(dx,dy,p){
   const e=eff(clubIdx), lie=terrainAt(ball.x,ball.y), pc=Math.min(p,1);
@@ -839,7 +898,7 @@ function land(){
   if(ball.curveMsg){ toast(ball.curveMsg,1500); ball.curveMsg=null; }
   if(t===OOB) return penalty('oob');
   if(t===WATER) return penalty('water');
-  if(dist(ball,hole.cup)<CUP_R+3) return holeOut();
+  if(dist(ball,hole.cup)<CUP_R-4) return holeOut();
   const k=Math.min(1,ball.keep)*TER[t].keep; ball.vx*=k; ball.vy*=k;
   Sound.land(t); if(t===SAND) fx.push({type:'puff',x:ball.x,y:ball.y,t:0});
   state='rolling';
@@ -855,12 +914,16 @@ function stepRoll(dt){
     s=Math.hypot(ball.vx,ball.vy);
     const dx=hole.cup.x-ball.x, dy=hole.cup.y-ball.y, d=Math.hypot(dx,dy);
     if(d<CUP_R){
-      if(s<ball.capture) return holeOut();
-      if(!ball.lipped){ ball.lipped=true; const a=(Math.random()<.5?-1:1)*0.45, c=Math.cos(a), sn=Math.sin(a); const vx=ball.vx*c-ball.vy*sn, vy=ball.vx*sn+ball.vy*c; ball.vx=vx*0.6; ball.vy=vy*0.6; Sound.lip(); }
+      const b=s>1?Math.abs(ball.vx*dy-ball.vy*dx)/s:0, cap=ball.capture*Math.max(0,1-(b/CUP_R)**2);
+      if(s<cap || s<12) return holeOut();
+      if(!ball.lipped){ ball.lipped=true;
+        const A=0.2+0.5*b/CUP_R, rot=a=>[ball.vx*Math.cos(a)-ball.vy*Math.sin(a), ball.vx*Math.sin(a)+ball.vy*Math.cos(a)];
+        const v1=rot(A), v2=rot(-A), v=(v1[0]*dx+v1[1]*dy)<(v2[0]*dx+v2[1]*dy)?v1:v2;
+        ball.vx=v[0]*0.75; ball.vy=v[1]*0.75; Sound.lip(); }
     } else if(d>CUP_R+3) ball.lipped=false;
-    if(d<CUP_R+ball.pull && d>0.5 && s<170){ const pull=300*h; ball.vx+=dx/d*pull; ball.vy+=dy/d*pull; }
+    if(d<CUP_R+2 && d>0.5 && s<45){ const pull=120*h; ball.vx+=dx/d*pull; ball.vy+=dy/d*pull; }
     s=Math.hypot(ball.vx,ball.vy);
-    const ns=Math.max(0,s-(TER[t].fric+0.3*s)*h), f=s>0?ns/s:0;
+    const ns=Math.max(0,s-(fricOf(t)+0.3*s)*h), f=s>0?ns/s:0;
     ball.vx*=f; ball.vy*=f; ball.x+=ball.vx*h; ball.y+=ball.vy*h;
     hitTree(false);
     if(ns<=0) break;
@@ -934,7 +997,7 @@ function updateHud(){
   $('#hWindArrow').style.transform=`rotate(${wind.a}rad)`;
   $('#hWindArrow').style.opacity=wind.mph===0?.25:1;
   const lie=terrainAt(ball.x,ball.y), lieEl=$('#lie');
-  if(state==='menu') lieEl.textContent='Clubhouse';
+  if(state==='menu') lieEl.textContent=`Clubhouse · ${season().name}`;
   else if(state==='ready'){
     const atTee=dist(ball,hole.tee)<2;
     lieEl.textContent = atTee ? 'Tee box · full power' : lie===GREEN ? 'On the green · putt it' : `${TER[lie]?TER[lie].name:'Rough'} · ${TER[lie]?TER[lie].note:''}`;
@@ -989,8 +1052,17 @@ function showHub(keepScroll){
   const gn=$('#gname'); if(gn) gn.oninput=()=>{ save.golfer.name=gn.value.slice(0,16); persist(); };
   const st=$('#soundToggle'); if(st) st.onclick=()=>{ toggleSound(); st.textContent=Sound.muted?'Sound off':'Sound on'; };
 }
+function seasonCard(){
+  const S=season(), sea=save.season, nxt=SEASONS[(sea.idx+1)%SEASONS.length];
+  return `<div class="season" style="--sc:${S.color}">
+    <div class="season-top"><span>Year ${sea.year} · Event ${sea.played+1} of ${EVENTS_PER_SEASON}</span><span>Next: ${nxt.name}</span></div>
+    <span class="season-name">${S.name}</span>
+    <span class="season-blurb">${S.blurb}</span>
+    <div class="season-foot"><span class="spips" aria-label="${sea.played} of ${EVENTS_PER_SEASON} events played">${Array.from({length:EVENTS_PER_SEASON},(_,k)=>`<i class="${k<sea.played?'on':''}"></i>`).join('')}</span><span>This season: ${sea.wins} win${sea.wins===1?'':'s'} · ${money(sea.cash)}</span></div>
+  </div>`;
+}
 function eventsHTML(){
-  return EVENTS.map((e,i)=>{
+  return seasonCard() + EVENTS.map((e,i)=>{
     const r=save.events[e.id], open=unlocked(i), canPay=save.cash>=e.fee;
     const best=r&&r.played ? ` · Best: <strong>${ordinal(r.bestFinish)}, ${fmtPar(r.bestScore)}</strong>` : '';
     const btnText=e.fee? (canPay?`Enter · ${money(e.fee)}`:`Need ${money(e.fee-save.cash)} more`) : 'Play · Free';
@@ -1009,6 +1081,7 @@ function eventsHTML(){
       <li>Arrows on the green point downhill. Putts break that way.</li>
       <li>Wind pushes the ball in the air. Water and out of bounds cost a stroke.</li>
       <li>Hire a caddie in the pro shop to see exactly where shots will land.</li>
+      <li>Seasons change every 3 events. Spring plays soft, summer runs fast, fall gets gusty, and winter greens are slick.</li>
       <li>Win an event outright to unlock the next one. Every event can be replayed.</li>
     </ul></details>
     <div class="row"><button class="btn ghost sm" id="soundToggle" type="button">${Sound.muted?'Sound off':'Sound on'}</button></div>`;
@@ -1079,6 +1152,18 @@ function showResults(){
   r.played++; if(champ) r.wins++;
   if(r.bestFinish===null || pos<r.bestFinish) r.bestFinish=pos;
   if(r.bestScore===null || me.tot<r.bestScore) r.bestScore=me.tot;
+  const sea=save.season, was=season();
+  sea.played++; sea.cash+=prize; if(champ) sea.wins++;
+  let seasonNote;
+  if(sea.played>=EVENTS_PER_SEASON){
+    const recap=`${was.name} wrapped: ${sea.wins} win${sea.wins===1?'':'s'}, ${money(sea.cash)} earned.`;
+    sea.idx=(sea.idx+1)%SEASONS.length; if(sea.idx===0) sea.year++; sea.played=0; sea.wins=0; sea.cash=0;
+    Sound.setSeason(season().id);
+    seasonNote=`<div class="season" style="--sc:${season().color}"><div class="season-top"><span>Season change</span><span>Year ${sea.year}</span></div><span class="season-name">${season().name} is here</span><span class="season-blurb">${recap} ${season().blurb}</span></div>`;
+  } else {
+    const left=EVENTS_PER_SEASON-sea.played;
+    seasonNote=`<div class="career">${was.name}: ${left} event${left===1?'':'s'} left this season.</div>`;
+  }
   persist();
   const next=EVENTS[idx+1], canAgain=save.cash>=EV.fee;
   openSheet('results',`
@@ -1089,6 +1174,7 @@ function showResults(){
     </div>
     <div class="sheet-body">
       ${firstWin&&next?`<div class="unlock">Unlocked: <span>${next.name}</span></div>`:''}
+      ${seasonNote}
       <div class="facts">
         <div><span class="lbl">Prize</span><b>${money(prize)}</b></div>
         <div><span class="lbl">Bank</span><b>${money(save.cash)}</b></div>
@@ -1165,8 +1251,8 @@ function fitPts(pts){
 }
 function shotEnd(ux,uy,p){
   const e=eff(clubIdx), lie=terrainAt(ball.x,ball.y), lf=lieFactor(e,lie);
-  if(e.putt){ const r=rollDist(e.v*p*lf, TER[lie]?TER[lie].fric:TER[FAIR].fric); return {x:ball.x+ux*r, y:ball.y+uy*r}; }
-  const carry=p*e.carry*lf, T=e.T*(0.45+0.55*p), roll=rollDist(carry/T*Math.min(1,e.keep), TER[FAIR].fric), wm=e.wind;
+  if(e.putt){ const r=rollDist(e.v*p*lf, fricOf(lie)); return {x:ball.x+ux*r, y:ball.y+uy*r}; }
+  const carry=p*e.carry*lf, T=e.T*(0.45+0.55*p), roll=rollDist(carry/T*Math.min(1,e.keep), fricOf(FAIR)), wm=e.wind;
   return {x:ball.x+ux*(carry+roll)+0.5*wind.ax*wm*T*T, y:ball.y+uy*(carry+roll)+0.5*wind.ay*wm*T*T};
 }
 function camTarget(){
@@ -1191,6 +1277,33 @@ function snapCamera(){ const t=camTarget(); cam.x=t.x; cam.y=t.y; cam.z=t.z; cla
 function updateCamera(dt){ const t=camTarget(), k=1-Math.exp(-dt*(overview?3:4.5)); cam.z+=(t.z-cam.z)*k; cam.x+=(t.x-cam.x)*k; cam.y+=(t.y-cam.y)*k; clampCam(); }
 
 /* ---------- Loop ---------- */
+const RM = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+let wx=[], wxSeason=null;
+function resetWeather(){
+  const w=season().weather; wxSeason=season().id;
+  const n = RM ? 0 : w==='rain'?150 : w==='snow'?110 : w==='leaves'?26 : 0;
+  wx=Array.from({length:n},()=>({x:Math.random()*Math.max(vw,1), y:Math.random()*Math.max(vh,1), s:Math.random(), r:Math.random()*6.28, c:(Math.random()*4)|0}));
+}
+function stepWeather(dt){
+  if(wxSeason!==season().id) resetWeather();
+  const w=season().weather, wxs=wind.mph*Math.cos(wind.a)*3, wys=wind.mph*Math.sin(wind.a)*1.5;
+  for(const p of wx){
+    if(w==='rain'){ p.x+=(wxs*1.4-30)*dt; p.y+=(560+p.s*220)*dt; }
+    else if(w==='snow'){ p.x+=(wxs+Math.sin(time*1.2+p.r)*16)*dt; p.y+=(34+p.s*38+wys*0.3)*dt; }
+    else { p.x+=(wxs*2+Math.sin(time*1.8+p.r)*30)*dt; p.y+=(26+p.s*28+wys)*dt; p.r+=dt*(1.5+p.s*3); }
+    if(p.y>vh+20){ p.y=-20; p.x=Math.random()*vw; } if(p.y<-30) p.y=vh+10;
+    if(p.x>vw+20) p.x=-20; else if(p.x<-20) p.x=vw+20;
+  }
+}
+function drawWeather(){
+  const w=season().weather;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = w==='rain'?'rgba(40,60,90,.07)' : w==='sun'?'rgba(255,214,120,.05)' : w==='snow'?'rgba(210,230,250,.06)' : 'rgba(200,120,40,.04)';
+  ctx.fillRect(0,0,vw,vh);
+  if(w==='rain'){ ctx.strokeStyle='rgba(205,222,255,.32)'; ctx.lineWidth=1.1; ctx.beginPath(); for(const p of wx){ ctx.moveTo(p.x,p.y); ctx.lineTo(p.x-2.5,p.y+11+p.s*5); } ctx.stroke(); }
+  else if(w==='snow'){ ctx.fillStyle='rgba(255,255,255,.85)'; for(const p of wx){ ctx.beginPath(); ctx.arc(p.x,p.y,1.1+p.s*1.9,0,7); ctx.fill(); } }
+  else if(w==='leaves'){ const cols=['#c4622d','#d88a2c','#a8432a','#d9b13e']; for(const p of wx){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.scale(1,Math.abs(Math.cos(p.r*1.3))*0.8+0.2); ctx.fillStyle=cols[p.c]; ctx.beginPath(); ctx.ellipse(0,0,5,2.6,0,0,7); ctx.fill(); ctx.restore(); } }
+}
 function update(dt){
   time+=dt;
   if(state==='intro'){ introT-=dt; if(introT<=0) endIntro(); }
@@ -1204,11 +1317,12 @@ function update(dt){
     if(lieEl.textContent!==txt) lieEl.textContent=txt; lieEl.classList.toggle('hot',ai.p>1); lieAim=true; }
   else if(lieAim){ lieAim=false; lieEl.classList.remove('hot'); updateHud(); }
   if(hole){ updateSide(); updateSwing(dt); updateCamera(dt); }
+  stepWeather(dt);
   if(sheetKind==='hub' && hubTab==='golfer') drawPreview();
 }
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.fillStyle=COL.outside; ctx.fillRect(0,0,vw,vh);
+  ctx.fillStyle=pal().outside; ctx.fillRect(0,0,vw,vh);
   if(!hole) return;
   const z=cam.z, ox=vw/2-cam.x*z, oy=vh/2-cam.y*z;
   ctx.setTransform(dpr*z,0,0,dpr*z,dpr*ox,dpr*oy);
@@ -1219,6 +1333,7 @@ function draw(){
   drawCup(z); drawFx(z);
   if(state!=='menu'){ drawBall(z); drawGolferWorld(z); }
   if(aim && state==='ready') drawAim(z);
+  drawWeather();
 }
 function drawCup(z){
   const c=hole.cup, r=Math.max(CUP_R,4/z);
@@ -1227,7 +1342,7 @@ function drawCup(z){
   const ph=Math.max(46,30/z), top=c.y-ph;
   ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=Math.max(2.2,1.5/z); ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(c.x+ph*0.55,c.y+ph*0.25); ctx.stroke();
   ctx.strokeStyle='#f4f5ef'; ctx.lineWidth=Math.max(2.4,1.6/z); ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(c.x,top); ctx.stroke();
-  const s=wind.mph/Math.max(1,EV.windMax), wx=wind.mph?Math.cos(wind.a):1, wy=wind.mph?Math.sin(wind.a):0.6;
+  const s=Math.min(1,wind.mph/Math.max(1,EV.windMax)), wx=wind.mph?Math.cos(wind.a):1, wy=wind.mph?Math.sin(wind.a):0.6;
   const len=Math.max(26,18/z)*(0.75+0.25*s), flut=Math.sin(time*(6+s*8))*3*(0.4+s);
   ctx.fillStyle=COL.flag; ctx.beginPath(); ctx.moveTo(c.x,top); ctx.lineTo(c.x,top+len*0.5);
   ctx.lineTo(c.x+wx*len, top+len*0.25+wy*len*0.35+flut+(1-s)*len*0.3); ctx.closePath(); ctx.fill();
@@ -1262,9 +1377,9 @@ function simRoll(x,y,vx,vy){
     const t=terrainAt(x,y); if(t===OOB||t===WATER) break;
     if(t===GREEN){ const sv=slopeAtS(hole.slope,x,y); vx+=sv.ax*h; vy+=sv.ay*h; }
     let s=Math.hypot(vx,vy); const dx=hole.cup.x-x, dy=hole.cup.y-y, d=Math.hypot(dx,dy);
-    if(d<CUP_R && s<pt.capture){ holed=true; x=hole.cup.x; y=hole.cup.y; break; }
-    if(d<CUP_R+pt.pull && d>0.5 && s<170){ vx+=dx/d*300*h; vy+=dy/d*300*h; s=Math.hypot(vx,vy); }
-    const ns=Math.max(0,s-(TER[t].fric+0.3*s)*h), f=s>0?ns/s:0; vx*=f; vy*=f; x+=vx*h; y+=vy*h;
+    if(d<CUP_R){ const b=s>1?Math.abs(vx*dy-vy*dx)/s:0; if(s<pt.capture*Math.max(0,1-(b/CUP_R)**2) || s<12){ holed=true; x=hole.cup.x; y=hole.cup.y; break; } }
+    if(d<CUP_R+2 && d>0.5 && s<45){ vx+=dx/d*120*h; vy+=dy/d*120*h; s=Math.hypot(vx,vy); }
+    const ns=Math.max(0,s-(fricOf(t)+0.3*s)*h), f=s>0?ns/s:0; vx*=f; vy*=f; x+=vx*h; y+=vy*h;
     if(i%6===0) pts.push([x,y]);
     if(ns<4) break;
   }
@@ -1285,7 +1400,7 @@ function drawAim(z){
   aimLabel(`${Math.round(p*100)}%${over?' OVERSWING':''}`, bx-a.dx*24/z, by-a.dy*24/z+8/z, z);
   ctx.strokeStyle='rgba(255,255,255,.92)'; ctx.lineWidth=2.4/z;
   if(e.putt){
-    const v=e.v*p*lf, fr=TER[lie]?TER[lie].fric:TER[FAIR].fric;
+    const v=e.v*p*lf, fr=fricOf(lie);
     if(cad>=2){
       const sim=simRoll(ball.x,ball.y,a.dx*v,a.dy*v);
       ctx.setLineDash([7/z,6/z]); ctx.beginPath(); sim.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.stroke(); ctx.setLineDash([]);
@@ -1324,6 +1439,7 @@ window.addEventListener('resize',()=>{ resize(); if(hole && state==='menu') snap
 resize();
 EV=EVENTS[0]; HOLES=EV.holes; field=[{name:'You',you:true}]; playerScores=[];
 startHole(0);
+Sound.setSeason(season().id);
 renderSound();
 showHub();
 if(save.carried){ delete save.carried; persist(); setTimeout(()=>toast('New career started. Your golfer came with you.',3200),400); }

@@ -247,6 +247,18 @@ details.how summary{cursor:pointer;font:600 12px/1.2 var(--body);letter-spacing:
 @media (max-width:440px){
   .gear-items{grid-template-columns:1fr}
 }
+.xprev{width:30px;height:30px;border-radius:7px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2)}
+.xclub{display:grid;place-items:center;background:var(--pine-2);color:var(--flag)}
+.xclub svg{width:20px;height:20px}
+.xsrc{display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right;flex:none;max-width:42%}
+.xsrc b{font:700 14px/1.1 var(--display);text-transform:uppercase}
+.xsrc b.owned{color:#1f6b45}
+.xsrc small{display:flex;gap:5px;align-items:center;font:500 11px/1 var(--body);color:var(--muted);white-space:nowrap}
+.xitem.locked .item-name{color:var(--muted)}
+@media (max-width:440px){
+  .xitem{flex-wrap:wrap;align-items:flex-start}
+  .xsrc{max-width:none;width:100%;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding-left:42px;text-align:left}
+}
 @media (prefers-reduced-motion:reduce){
   .toast,.banner,.val svg{transition:none}
 }
@@ -1122,11 +1134,12 @@ function resetRS(){ RS={fw:0,gir:0,pens:0,three:0,chipin:0,longPutt:0,longDrive:
 function resetHS(){ HS={putts:0,gir:false,sand:false,from:null,club:-1,lie:null,pen:false}; }
 // returns {done, failed, prog}
 function goalCheck(g, final, res){ const [k,v]=goalKey(g), n=+v, R=RS||{};
+  const now=()=>{ if(!playerScores.length) return 'Decided at the finish'; const st=standings(), me=st.find(x=>x.you); return `You're ${posOf(st,me).label} right now`; };
   const count=(have)=>({done:have>=n, failed:false, prog:`${Math.min(have,n)} of ${n}`});
   switch(k){
-    case 'top': return {done:final&&!res.wd&&res.pos<=n, failed:final&&(res.wd||res.pos>n), prog:'Decided at the finish'};
-    case 'win': return {done:final&&res.champ, failed:final&&!res.champ, prog:'Decided at the finish'};
-    case 'major': return {done:final&&res.champ&&EV.major, failed:final&&!(res.champ&&EV.major), prog:'Decided at the finish'};
+    case 'top': return {done:final&&!res.wd&&res.pos<=n, failed:final&&(res.wd||res.pos>n), prog:now()};
+    case 'win': return {done:final&&res.champ, failed:final&&!res.champ, prog:now()};
+    case 'major': return {done:final&&res.champ&&EV.major, failed:final&&!(res.champ&&EV.major), prog:now()};
     case 'under': { const cur=playerScores.reduce((a,s,i)=>a+s-HOLES[i].par,0); return {done:final&&!res.wd&&cur<=-n, failed:final&&(res.wd||cur>-n), prog:`${fmtPar(cur)} so far`}; }
     case 'birdies': return count(R.birdies);
     case 'eagle': return {done:R.eagles>0, failed:false, prog:R.eagles?'Done':'Not yet'};
@@ -2080,7 +2093,23 @@ function shopHTML(){
     return `<button class="swatch" type="button" data-color="${c.id}" aria-pressed="${on}" ${own||afford?'':'disabled'}><span class="dot" style="background:radial-gradient(circle at 35% 35%,${c.c1},${c.c2})"></span>${c.name}<small>${on?'Using':own?'Owned':money(c.price)}</small></button>`; }).join('');
   return `<h3 class="sec">Clubs</h3><div>${clubs}</div>
     <h3 class="sec">Balls</h3><div>${balls}</div>
-    <h3 class="sec">Ball colors</h3><div class="swatches">${colors}</div>`;
+    <h3 class="sec">Ball colors</h3><div class="swatches">${colors}</div>
+    <h3 class="sec">Sponsor exclusives</h3><div class="career" style="border:0;padding:0">Not for sale. Clear a sponsor's goal set to earn each one.</div>${shopExclHTML()}`;
+}
+function shopExclHTML(){
+  const src={}; SPONSORS.forEach(s=>s.sets.forEach((x,i)=>src[x.item]={s,rank:i}));
+  const KIND={color:'Ball color', ball:'Ball', club:'Signature club', shirt:'Polo', hat:'Hat color', pants:'Pants', watch:'Watch'};
+  const prev=it=>{ const k=it.kind;
+    if(k==='color') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle at 35% 35%,${it.c1},${it.c2})"></span>`;
+    if(k==='shirt') return `<span class="xprev" style="background:linear-gradient(${it.c} 0 38%,${it.s2} 38% 56%,${it.c} 56%)"></span>`;
+    if(k==='hat'||k==='pants') return `<span class="xprev" style="background:${it.c}"></span>`;
+    if(k==='ball') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#c4cac2)"></span>`;
+    if(k==='watch') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle,#fbf0c6 0 42%,#c9a227 44% 70%,transparent 72%)"></span>`;
+    return `<span class="xprev xclub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3 9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M9 17c-1 2-3 3.5-5.5 3.5-.8 0-1-.9-.3-1.3L8 16.5z" fill="currentColor"/></svg></span>`; };
+  const groups=[['club'],['ball'],['color'],['shirt','hat','pants','watch']];
+  return groups.map(ks=>Object.entries(ITEMS).filter(([,it])=>ks.includes(it.kind)).sort((a,b)=>src[a[0]].s.tier-src[b[0]].s.tier||src[a[0]].rank-src[b[0]].rank).map(([id,it])=>{ const {s,rank}=src[id], own=hasItem(id);
+    return `<div class="item xitem ${own?'':'locked'}">${prev(it)}<div class="item-main"><span class="item-name">${it.name}${it.kind==='club'?` <span class="tier t${it.tier}">${TIERS[it.tier]}</span>`:''}</span><span class="item-desc">${it.desc||KIND[it.kind]}</span></div>
+      <div class="xsrc">${own?'<b class="owned">Owned</b>':`<b style="color:${s.color}">${s.name}</b>`}<small>${rankChip(rank)} ${TOUR[s.tier].name}</small></div></div>`; }).join('')).join('');
 }
 function buyUpgrade(id){ const t=save.gear[id]||0, price=UPGRADES[id].prices[t]; if(t>=4||save.cash<price) return; save.cash-=price; save.gear[id]=t+1; persist(); Sound.coin(); toast(`${TIERS[t+1]} ${CLUBS.find(c=>c.id===id).name} in the bag`); showHub(true); }
 function buyBall(id){ const b=BALLS.find(x=>x.id===id); if(!save.ballsOwned.includes(id)){ if(save.cash<b.price) return; save.cash-=b.price; save.ballsOwned.push(id); Sound.coin(); toast(`Bought ${b.name}`); } else Sound.tick(); save.ball=id; persist(); showHub(true); }
@@ -2203,7 +2232,7 @@ function showBoard(){
   if(sheetKind || state==='menu') return;
   openSheet('board',`
     <div class="sheet-head"><span class="kicker">Leaderboard · after ${playerScores.length} of ${HOLES.length}</span><span class="title">${EV.name}</span></div>
-    <div class="sheet-body">${boardHTML()}
+    <div class="sheet-body">${goalHoleHTML()}${boardHTML()}
       <div class="row"><button class="btn primary" id="backBtn" type="button">Back to the course</button><button class="btn ghost" id="wdBtn" type="button">Withdraw</button></div>
     </div>`, '#backBtn');
   $('#backBtn').onclick=closeSheet;

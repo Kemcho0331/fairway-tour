@@ -255,7 +255,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 
 /* ---------- Constants ---------- */
 const YPP = 0.22;            // yards per world unit
-const CUP_R = 9, BALL_R = 6, MAX_STROKES = 10;
+const CUP_R = 7.5, BALL_R = 6, MAX_STROKES = 10;
 const ROUGH=0, FAIR=1, GREEN=2, SAND=3, WATER=4, POT=5, WASTE=6, OOB=-1;
 const isSand=t=>t===SAND||t===POT||t===WASTE;
 const TER = {
@@ -1535,7 +1535,7 @@ function shoot(dx,dy,p){
   const ang=Math.atan2(dy,dx)+(Math.random()*2-1)*spread*Math.PI/180;
   const ux=Math.cos(ang), uy=Math.sin(ang), lf=lieFactor(e,lie), pt=eff(3);
   swing.phase='down'; swing.t=0; swing.from=swing.cur; swing.to=G_A0-(e.putt?0.9:2.5);
-  ball.trail=[]; ball.lipped=false; ball.capture=pt.capture; ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null;
+  ball.trail=[]; ball.lipped=false; ball.capture=pt.capture*(e.putt?1:0.7); ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null;
   if(e.putt){
     const v=e.v*p*lf; ball.vx=ux*v; ball.vy=uy*v; ball.z=0; state='rolling'; Sound.putt(p);
   } else {
@@ -1581,7 +1581,7 @@ function land(){
   if(ball.curveMsg){ toast(ball.curveMsg,1500); ball.curveMsg=null; }
   if(t===OOB) return penalty('oob');
   if(t===WATER) return penalty('water');
-  if(dist(ball,hole.cup)<CUP_R-4) return holeOut();
+  if(dist(ball,hole.cup)<CUP_R-3.5) return holeOut();
   const k=Math.min(1,ball.keep)*TER[t].keep; ball.vx*=k; ball.vy*=k;
   Sound.land(t); if(isSand(t)) fx.push({type:'puff',x:ball.x,y:ball.y,t:0});
   state='rolling';

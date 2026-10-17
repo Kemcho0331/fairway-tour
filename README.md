@@ -23,6 +23,7 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Settings include parkland, pines, coast, Hill Country, desert, Galveston links, Caddo Lake bayou, and the windy Panhandle
 - Pro shop with four club tiers, special balls, and ball colors
 - Sloped greens with break arrows, plus tiered greens with steps between levels
+- A tight cup: fast or off-center balls lip out, and chips drop less often than putts
 - 15 hole archetypes based on classic golf design: island green, Redan, Biarritz, Eden, bunker ring, long par 3, dogleg, Road hole, Cape, split fairway, Leven, bottle neck, drivable par 4, peninsula green, Hell bunker, reachable par 5, Sahara waste carry, and more
 - Big Bend plays as a true desert course: rocky scrub off the fairway, mesquite, sotol, ocotillo, and boulders
 - Pot bunkers, desert waste areas, drop zones, and the occasional lone tree in the fairway

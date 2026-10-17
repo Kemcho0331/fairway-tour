@@ -15,9 +15,12 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 
 ## Features
 
-- Eight tournaments: Willow Creek Open, Bluebonnet Classic, Piney Woods Classic, Gulf Coast Invitational, Hill Country Open, Big Bend Desert Classic, Texas Masters, Lone Star Championship
-- Win an event outright to unlock the next one. Every unlocked event can be replayed.
-- Entry fees and steep, tour-style payouts
+- A full career across four tiers: Amateur, Mini-Tour, Challenger Tour, and Pro Tour, with 8 events each (32 courses)
+- A fixed schedule per tier, two events per season, then a Tour Championship for the top 6 in the standings
+- Standings points for every finish (majors and the Championship count double); the top 2 move up a tier
+- Miss promotion and you can try Q-School, where only a win gets you through
+- Entry fees and steep, tour-style payouts; if you're short, the fee comes out of your winnings
+- Settings include parkland, pines, coast, Hill Country, desert, Galveston links, Caddo Lake bayou, and the windy Panhandle
 - Pro shop with four club tiers, special balls, and ball colors
 - Sloped greens with break arrows, plus tiered greens with steps between levels
 - 15 hole archetypes based on classic golf design: island green, Redan, Biarritz, Eden, bunker ring, long par 3, dogleg, Road hole, Cape, split fairway, Leven, bottle neck, drivable par 4, peninsula green, Hell bunker, reachable par 5, Sahara waste carry, and more
@@ -25,15 +28,19 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Pot bunkers, desert waste areas, drop zones, and the occasional lone tree in the fairway
 - Pin positions rotate every time you play an event
 - Courses blend into their surroundings past the white out-of-bounds stakes: thickening woods, pine forest, coastal dunes and ocean, Hill Country limestone, desert mesas, and azaleas
-- Seasons that change every 3 events: soft spring ground with rain, firm and fast summer, gusty fall wind with leaves, slick winter greens with snow, each with its own music
+- Seasons follow the tour calendar: soft spring ground with rain, firm and fast summer, gusty fall wind with leaves, slick winter greens with snow, each with its own music
 - Later events get narrower fairways, smaller greens, more trees, and stronger fields
 - Fairway, rough, sand, green, water, trees, and wind
-- AI rivals (fields of 6 to 11) with a live leaderboard
+- A different roster of rivals on every tier, with a live leaderboard
 - Generated music and sound effects
 - Customizable golfer with a name, skin tone, shirt, pants, and hat, plus a full swing animation
 - Progress saves in the browser (localStorage)
 
 ## Roadmap
 
-- Sponsors with bonus goals
+- Nemesis system
+- Sponsors with exclusive gear and cosmetics
+- Trophy case and achievements
+- Driving range, free practice, and a scorecard button
+- Two-round Pro Tour majors with a cut
 - Tension music on the final hole of a major

@@ -32,15 +32,16 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Later events get narrower fairways, smaller greens, more trees, and stronger fields
 - Fairway, rough, sand, green, water, trees, and wind
 - A different roster of rivals on every tier, with a live leaderboard
+- A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
+- A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
 - Generated music and sound effects
 - Customizable golfer with a name, skin tone, shirt, pants, and hat, plus a full swing animation
 - Progress saves in the browser (localStorage)
 
 ## Roadmap
 
-- Nemesis system
 - Sponsors with exclusive gear and cosmetics
-- Trophy case and achievements
+- Achievements
 - Driving range, free practice, and a scorecard button
 - Two-round Pro Tour majors with a cut
 - Tension music on the final hole of a major

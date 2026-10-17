@@ -79,7 +79,7 @@ button:focus-visible{outline:3px solid var(--flag);outline-offset:2px}
 .bank b{font:700 28px/1 var(--display);color:var(--flag);font-variant-numeric:tabular-nums}
 .bank span{font:600 10px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--chalk)}
 .tabs{display:flex;gap:4px;background:rgba(0,0,0,.25);padding:4px;border-radius:8px;margin-top:8px;position:relative;z-index:1}
-.tab{flex:1;min-width:0;border:0;background:transparent;color:var(--chalk);font:700 14px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;padding:10px 4px;border-radius:6px;cursor:pointer}
+.tab{flex:1;min-width:0;border:0;background:transparent;color:var(--chalk);font:700 14px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;padding:10px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:6px;cursor:pointer}
 .tab[aria-selected="true"]{background:var(--board);color:var(--ink)}
 .sheet-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px}
 .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
@@ -107,6 +107,23 @@ button:focus-visible{outline:3px solid var(--flag);outline-offset:2px}
 .srow.done .nm b{color:var(--muted)}
 .chip-s{font:700 10px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;padding:4px 6px;border-radius:3px;color:#fff;white-space:nowrap}
 .lb tr.cutline td{border-top:2px dashed var(--ink)}
+.nemtag{font:700 9px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;background:var(--under);color:#fff;padding:3px 5px;border-radius:3px;vertical-align:2px;white-space:nowrap}
+.lb tr.nem td{color:var(--under)}
+.nemq{border-left:3px solid var(--under);background:#fbeeea;padding:9px 12px;border-radius:0 6px 6px 0;font:500 13.5px/1.45 var(--body);color:var(--ink)}
+.nemq small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.nemcard{border-radius:8px;padding:12px 14px 14px;background:#4a1b16;color:#fff;display:flex;flex-direction:column;gap:6px}
+.h2h{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.h2h div{background:rgba(255,255,255,.1);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:3px}
+.h2h b{font:700 26px/1 var(--display);font-variant-numeric:tabular-nums}
+.h2h span{font:600 10px/1.2 var(--body);letter-spacing:.09em;text-transform:uppercase;opacity:.8}
+.facts.facts4{grid-template-columns:repeat(4,1fr)}
+.facts.facts4 b{font-size:19px}
+.trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.tro{border:1px solid var(--rule);border-radius:8px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0}
+.tro svg{width:40px;height:40px}
+.tro b{font:700 12.5px/1.1 var(--display);text-transform:uppercase;letter-spacing:.01em;overflow-wrap:anywhere;max-width:100%}
+.tro small{font:500 11px/1.25 var(--body);color:var(--muted)}
+.tro.off b{color:var(--muted)}
 .unlock{background:var(--pine-2);color:#fff;border-radius:6px;padding:10px 12px;font:700 17px/1.2 var(--display);text-transform:uppercase;letter-spacing:.04em}
 .unlock span{color:var(--flag)}
 table.lb{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
@@ -172,6 +189,8 @@ details.how summary{cursor:pointer;font:600 12px/1.2 var(--body);letter-spacing:
 .tchip{font:700 15px/1 var(--display);text-transform:uppercase;letter-spacing:.05em;padding:9px 13px;border-radius:999px;border:1.5px solid var(--rule);background:var(--board);color:var(--ink);cursor:pointer}
 .tchip[aria-pressed="true"]{background:var(--ink);color:var(--board);border-color:var(--ink)}
 @media (max-width:440px){
+  .tab{font-size:12px;letter-spacing:0}
+  .facts.facts4{grid-template-columns:repeat(2,1fr)}
   .cell{padding:5px 8px 6px}
   .val{font-size:21px}
   .lbl{font-size:9px}
@@ -807,7 +826,7 @@ function makeEvent(t, k, def, kind){
   const rosterT=kind==='q'?Math.min(3,t+1):t, roster=TOUR[rosterT].roster;
   const e={id, name, tier:t, k, kind, set, pars, par:pars.reduce((a,b)=>a+b,0), diff, boost:TOUR[rosterT].boost+(kind==='q'?0.06:0),
     windMax:Math.round(S.wind*(0.85+t*0.1)), fee, major:!!o.major, mult:(o.major||kind==='champ')?2:1,
-    tagline:o.tag||TAGS[set]||'', roster, payouts:SHARES.slice(0,roster.length+1).map(sh=>Math.round(win*sh/50)*50)};
+    tagline:o.tag||TAGS[set]||'', roster, payouts:SHARES.map(sh=>Math.round(win*sh/50)*50)};
   let cache=null;
   Object.defineProperty(e,'holes',{get(){
     if(cache) return cache;
@@ -828,8 +847,8 @@ function tierDef(){ return TOUR[career().tier]; }
 function seasonIdx(){ const c=career(); return c.phase==='season' ? Math.min(3,Math.floor(c.k/2)) : 3; }
 function currentEvent(){ const c=career(), T=tierDef(); return c.phase==='season'?T.events[c.k] : c.phase==='champ'?T.champEv : T.qEv; }
 function tableRows(){
-  const c=career(), T=tierDef(), names=[ME, ...T.roster.map(r=>r[0])];
-  return names.map(n=>({n, name:n===ME?playerName():n, you:n===ME, pts:Math.round(c.pts[n]||0), wins:c.wins[n]||0}))
+  const c=career(), n=nem(), names=[ME, ...tierRoster(c.tier).map(r=>r[0])];
+  return names.map(k=>({n:k, name:k===ME?playerName():k, you:k===ME, nem:!!(n&&k===n.name), pts:Math.round(c.pts[k]||0), wins:c.wins[k]||0}))
     .sort((a,b)=>b.pts-a.pts || b.wins-a.wins || (b.you?1:0)-(a.you?1:0));
 }
 function myRank(){ return tableRows().findIndex(r=>r.you)+1; }
@@ -839,6 +858,93 @@ function awardPoints(totals, mult){
   while(i<idx.length){ let j=i; while(j+1<idx.length && totals[idx[j+1]]===totals[idx[i]]) j++; let s=0; for(let k=i;k<=j;k++) s+=PTS[k]||30; s/=j-i+1; for(let k=i;k<=j;k++) pts[idx[k]]=s*mult; i=j+1; }
   return pts;
 }
+/* ---------- Nemesis ---------- */
+const PERSONAS = {
+  bomber:  {name:'The Bomber',  sd:.86, eagle:1,   mean:0,   blurb:'Long and wild. Lots of birdies, plenty of doubles.',
+    pre:["Hope you brought a few extra balls.","I'll be hitting wedge where you're hitting iron.","Try to keep up off the tee."],
+    win:["Told you. Distance wins.","Maybe next time hit it past me once."], lose:["The wind cost me. Won't happen twice.","Enjoy it. I'll be bombing past you next week."]},
+  grinder: {name:'The Grinder', sd:.42, eagle:1,   mean:.03, blurb:'Fairways, greens, pars. Almost never makes a mistake.',
+    pre:["Pars win tournaments.","I'll be in the fairway. Where will you be?","Make one mistake. That's all I need."],
+    win:["Steady wins again.","You blinked. I didn't."], lose:["One good week doesn't make a career.","I'll still be here when you slip."]},
+  showman: {name:'The Showman', sd:.78, eagle:2.5, mean:0,   blurb:'Eagles and blowups. Never boring.',
+    pre:["The crowd's here for me, you know.","Feeling an eagle this week.","Let's put on a show."],
+    win:["Did you see that eagle? Everybody did.","Thanks for the supporting role."], lose:["Fine. You get one highlight reel.","The cameras were on me anyway."]},
+};
+const SETTLE_WINS = 5;
+const nem = () => save.nem || null;
+const firstName = n => n.split(' ')[0];
+function personaFor(name){ return ['bomber','grinder','showman'][idSeed(name)%3]; }
+// the nemesis plays just ahead of your recent form, never below the middle of the tier
+function nemSkill(t){
+  const f=save.form||[], base=f.length ? f.reduce((a,b)=>a+b,0)/f.length : 0.45, T=TOUR[t];
+  return clamp(base+0.05, T.roster[3][1]+T.boost, 0.97);
+}
+// a tier's roster, plus your nemesis if they followed you up from another tier
+function tierRoster(t){ const ros=TOUR[t].roster.slice(), n=nem(); if(n && !ros.some(r=>r[0]===n.name)) ros.push([n.name, null]); return ros; }
+function nemQuote(kind){ const n=nem(); if(!n) return ''; const L=PERSONAS[n.persona][kind], c=career(); return L[(c.year*7+c.k+(n.w+n.l)*3)%L.length]; }
+function addTrophy(key, label, kind){ const t=save.trophies[key]||(save.trophies[key]={label, kind, count:0, years:[]}); t.count++; t.years.push(career().year); }
+// called after every finished event; returns HTML notes for the results sheet
+function nemesisAfterEvent(keys, totals, wd){
+  let note='';
+  const n=nem(), mine=totals[0];
+  if(n){
+    const i=keys.indexOf(n.name);
+    if(i>0){
+      const theirs=totals[i];
+      if(wd || theirs<mine){ n.l++; note+=`<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(n.name)}:</b> "${PERSONAS[n.persona].win[(n.l)%2]}" <small>Head to head ${n.w}-${n.l}</small></div>`; }
+      else if(mine<theirs){ n.w++;
+        if(n.w>=SETTLE_WINS){
+          addTrophy('rival:'+n.name, `Rivalry: ${n.name}`, 'rival');
+          save.nemPast.push({name:n.name, persona:n.persona, w:n.w, l:n.l, year:career().year});
+          note+=`<div class="season" style="--sc:#8a2a1e"><div class="season-top"><span>Rivalry settled</span><span>${n.w}-${n.l}</span></div><span class="season-name">${esc(n.name)} is beaten</span><span class="season-blurb">"${PERSONAS[n.persona].lose[0]}" A rivalry trophy is in your case, and someone new will want a shot at you.</span></div>`;
+          save.nem=null;
+        } else note+=`<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(n.name)}:</b> "${PERSONAS[n.persona].lose[(n.w)%2]}" <small>Head to head ${n.w}-${n.l} · ${SETTLE_WINS-n.w} more to settle it</small></div>`;
+      }
+    }
+  } else if(!wd){
+    // a close finish near the top starts a rivalry
+    const past=new Set((save.nemPast||[]).map(p=>p.name)), myPos=1+totals.filter(t=>t<mine).length;
+    let best=null;
+    keys.forEach((k,i)=>{ if(i===0||past.has(k)) return; const d=totals[i]-mine, pos=1+totals.filter(t=>t<totals[i]).length;
+      if(Math.abs(d)<=1 && Math.min(pos,myPos)<=3){ const score=Math.abs(d)+(d>0?0.5:0); if(!best || score<best.score) best={k,score}; } });
+    if(best){
+      const persona=personaFor(best.k); save.nem={name:best.k, persona, w:0, l:0, year:career().year};
+      note+=`<div class="season" style="--sc:#8a2a1e"><div class="season-top"><span>A rivalry begins</span><span>${PERSONAS[persona].name}</span></div><span class="season-name">${esc(best.k)}</span><span class="season-blurb">${PERSONAS[persona].blurb} "${PERSONAS[persona].pre[0]}" Finish ahead of ${firstName(best.k)} in ${SETTLE_WINS} events to settle it.</span></div>`;
+    }
+  }
+  return note;
+}
+function nemHoleLine(i){
+  const n=nem(); if(!n) return ''; const p=field.find(f=>f.name===n.name); if(!p) return '';
+  const par=HOLES[i].par, hs=p.scores[i], theirs=p.scores.slice(0,i+1).reduce((a,s,k)=>a+s-HOLES[k].par,0), mine=playerScores.reduce((a,s,k)=>a+s-HOLES[k].par,0), d=theirs-mine;
+  const what=scoreName(hs,par).replace('!','').toLowerCase();
+  return `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(firstName(n.name))}</b> made ${what==='hole in one'?'a hole in one':what==='par'?'par':'a'+(/^[aeiou]/.test(what)?'n':'')+' '+what} here. ${d>0?`You lead by ${d}.`:d<0?`${firstName(n.name)} leads you by ${-d}.`:'You are all square.'}</div>`;
+}
+const CUP=(c)=>`<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5h16v9a8 8 0 0 1-16 0z" fill="${c}"/><path d="M12 8H7.5a4.5 4.5 0 0 0 4.5 7M28 8h4.5A4.5 4.5 0 0 1 28 15" fill="none" stroke="${c}" stroke-width="2.4"/><rect x="18" y="21" width="4" height="7" fill="${c}"/><rect x="11" y="28" width="18" height="6" rx="1.5" fill="${c}"/><path d="M15 8v6" stroke="rgba(255,255,255,.45)" stroke-width="2" stroke-linecap="round"/></svg>`;
+const TROPHY_LIST = [
+  ['champ:0','Amateur Tour Championship','#9aa7ae'], ['champ:1','Mini-Tour Championship','#9aa7ae'], ['champ:2','Challenger Tour Championship','#9aa7ae'], ['champ:3','Pro Tour Championship','#c9a227'],
+  ['major:masters','Texas Masters','#c9a227'], ['major:lonestar','Lone Star Championship','#c9a227'],
+  ['promo:1','Mini-Tour card','#2f7d4a'], ['promo:2','Challenger Tour card','#2f7d4a'], ['promo:3','Pro Tour card','#2f7d4a'],
+  ['qschool','Q-School','#b8763c'], ['poy','Player of the Year','#c9a227'],
+];
+function careerTabHTML(){
+  const s=save.stats, c=career(), n=nem();
+  const fact=(l,v)=>`<div><span class="lbl">${l}</span><b>${v}</b></div>`;
+  const facts=`<div class="facts facts4">${fact('Events',s.events)}${fact('Wins',s.wins)}${fact('Top 5s',s.top5||0)}${fact('Majors',s.majors||0)}${fact('Earnings',money(s.earnings))}${fact('Best round',s.best===null?'-':fmtPar(s.best))}${fact('Birdies+',s.birdies)}${fact('Aces',s.hio)}</div>`;
+  const nemBlock = n ? `<div class="nemcard"><div class="season-top"><span>Your nemesis · ${PERSONAS[n.persona].name}</span><span>Since year ${n.year}</span></div>
+      <span class="season-name">${esc(n.name)}</span><span class="season-blurb">${PERSONAS[n.persona].blurb}</span>
+      <div class="h2h"><div><b>${n.w}</b><span>Your wins</span></div><div><b>${n.l}</b><span>Their wins</span></div><div><b>${Math.max(0,SETTLE_WINS-n.w)}</b><span>To settle it</span></div></div></div>`
+    : `<div class="field">No nemesis yet. Finish within a stroke of a rival near the top of the leaderboard and one will emerge.</div>`;
+  const past=(save.nemPast||[]).map(p=>`<div class="item"><div class="item-main"><span class="item-name">${esc(p.name)}</span><span class="item-desc">${PERSONAS[p.persona].name} · settled in year ${p.year} · ${p.w}-${p.l}</span></div></div>`).join('');
+  const tro=(key,label,col)=>{ const t=save.trophies[key]; return `<div class="tro ${t?'':'off'}">${CUP(t?col:'#b8c2bb')}<b>${esc(label)}</b><small>${t?`${t.count>1?'×'+t.count+' · ':''}Year ${t.years.join(', ')}`:'Not yet'}</small></div>`; };
+  const rivalT=Object.entries(save.trophies).filter(([k])=>k.startsWith('rival:')).map(([k,t])=>tro(k,t.label,'#a8392a')).join('');
+  const won=Object.keys(save.trophies).length;
+  return `<div class="season" style="--sc:var(--pine-2)"><div class="season-top"><span>Career</span><span>Year ${c.year}</span></div><span class="season-name">${tierDef().name}</span>
+      <span class="season-blurb">${s.promotions||0} promotion${s.promotions===1?'':'s'} · ${s.poy||0} Player of the Year award${s.poy===1?'':'s'} · ${won} troph${won===1?'y':'ies'}</span></div>
+    ${facts}
+    <h3 class="sec">Nemesis</h3>${nemBlock}${past?`<div>${past}</div>`:''}
+    <h3 class="sec">Trophy case</h3><div class="trophies">${TROPHY_LIST.map(([k,l,col])=>tro(k,l,col)).join('')}${rivalT}</div>`;
+}
 let EV=null, HOLES=[];
 
 /* ---------- Roll physics helper ---------- */
@@ -846,7 +952,7 @@ function rollDist(v, fric){ let d=0; const dt=1/120; let n=0; while(v>4 && n++<5
 
 /* ---------- Save ---------- */
 const SAVE_KEY = 'fairway-tour-v3', OLD_KEYS = ['fairway-tour-v2','fairway-tour-v1'];
-function defaultSave(){ return {cash:0, muted:false, career:{tier:0, year:1, k:0, phase:'season', pts:{}, wins:{}, played:{}}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
+function defaultSave(){ return {cash:0, muted:false, nem:null, nemPast:[], trophies:{}, form:[], career:{tier:0, year:1, k:0, phase:'season', pts:{}, wins:{}, played:{}}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0, top5:0, majors:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
 function loadSave(){
   const d=defaultSave();
   try{
@@ -1367,15 +1473,17 @@ let field=[], playerScores=[], duckUsed=false, lieAim=false;
 function resize(){ dpr=Math.min(2,window.devicePixelRatio||1); const r=cv.getBoundingClientRect(); vw=r.width; vh=r.height; cv.width=Math.round(vw*dpr); cv.height=Math.round(vh*dpr); }
 
 const gauss=()=>{ let u=0,v=0; while(!u) u=Math.random(); while(!v) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
-function rivalScore(par, skill, diff, form){
-  let rel=Math.round(0.30-0.62*skill+0.25*diff+season().rival+form+0.62*gauss());
-  if(rel<=-2){ if(par===3) rel=Math.random()<0.08?-2:-1; else if(par===4) rel=Math.random()<0.15?-2:-1; else rel=-2; }
+function rivalScore(par, skill, diff, form, persona){
+  const P=persona&&PERSONAS[persona];
+  let rel=Math.round(0.30-0.62*skill+0.25*diff+season().rival+form+(P?P.mean:0)+(P?P.sd:0.62)*gauss());
+  if(rel<=-2){ const e=P?P.eagle:1; if(par===3) rel=Math.random()<0.08*e?-2:-1; else if(par===4) rel=Math.random()<0.15*e?-2:-1; else rel=-2; }
   return par+Math.min(3,rel);
 }
 function newTournament(){
   HOLES=EV.holes;
-  const ros = EV.kind==='champ' ? tableRows().filter(r=>!r.you).slice(0,5).map(r=>tierDef().roster.find(x=>x[0]===r.n)) : EV.roster;
-  field=[{name:'You',you:true}, ...ros.map(([name,sk])=>{ const skill=Math.min(0.97,sk+EV.boost), form=gauss()*0.1; return {name, skill, scores:HOLES.map(h=>rivalScore(h.par,skill,EV.diff,form))}; })];
+  const rt = EV.kind==='q' ? Math.min(3,EV.tier+1) : EV.tier, full=tierRoster(rt), n=nem();
+  const ros = EV.kind==='champ' ? tableRows().filter(r=>!r.you).slice(0,5).map(r=>full.find(x=>x[0]===r.n)) : full;
+  field=[{name:'You',you:true}, ...ros.map(([name,sk])=>{ const isN=!!(n&&name===n.name), skill=isN?nemSkill(rt):Math.min(0.97,sk+EV.boost), form=gauss()*0.1, per=isN?n.persona:null; return {name, skill, nem:isN, scores:HOLES.map(h=>rivalScore(h.par,skill,EV.diff,form,per))}; })];
   playerScores=[]; duckUsed=false;
   HOLES.forEach(h=>setPin(h, h.pins[(Math.random()*h.pins.length)|0]));
   startHole(0);
@@ -1547,14 +1655,14 @@ const money = n => '$'+n.toLocaleString('en-US');
 const ordinal = n => n+(['th','st','nd','rd'][(n%100>10&&n%100<14)?0:(n%10<4?n%10:0)]);
 function standings(){
   const done=playerScores.length;
-  return field.map(p=>{ const sc=p.you?playerScores:p.scores.slice(0,done); const tot=sc.reduce((a,s,i)=>a+s-HOLES[i].par,0); return {name:p.you?playerName():p.name,you:!!p.you,tot,thru:sc.length,strokes:sc.reduce((a,b)=>a+b,0)}; })
+  return field.map(p=>{ const sc=p.you?playerScores:p.scores.slice(0,done); const tot=sc.reduce((a,s,i)=>a+s-HOLES[i].par,0); return {name:p.you?playerName():p.name,you:!!p.you,nem:!!p.nem,tot,thru:sc.length,strokes:sc.reduce((a,b)=>a+b,0)}; })
     .sort((a,b)=>a.tot-b.tot || (b.you?1:0)-(a.you?1:0));
 }
 function posOf(st,s){ const pos=1+st.filter(o=>o.tot<s.tot).length; const tied=st.filter(o=>o.tot===s.tot).length>1; return {pos,tied,label:(tied?'T':'')+pos}; }
 function boardHTML(){
   const st=standings();
   return `<table class="lb"><thead><tr><th>Pos</th><th>Player</th><th class="r">Thru</th><th class="r">To par</th></tr></thead><tbody>${
-    st.map(s=>`<tr class="${s.you?'you':''}"><td class="pos">${posOf(st,s).label}</td><td>${esc(s.name)}</td><td class="r">${s.thru===HOLES.length?'F':s.thru}</td><td class="num ${s.tot<0?'under':''}">${fmtPar(s.tot)}</td></tr>`).join('')
+    st.map(s=>`<tr class="${s.you?'you':''} ${s.nem?'nem':''}"><td class="pos">${posOf(st,s).label}</td><td>${esc(s.name)}${s.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${s.thru===HOLES.length?'F':s.thru}</td><td class="num ${s.tot<0?'under':''}">${fmtPar(s.tot)}</td></tr>`).join('')
   }</tbody></table>`;
 }
 
@@ -1605,7 +1713,7 @@ function careerLine(){ const s=save.stats; if(!s.events) return ''; return `<div
 
 function showHub(keepScroll){
   state='menu'; updateHud(); $('#rack').innerHTML='';
-  const tabs=[['tour','Tour'],['standings','Standings'],['golfer','Golfer'],['shop','Shop']];
+  const tabs=[['tour','Tour'],['standings','Points'],['career','Career'],['golfer','Golfer'],['shop','Shop']];
   const head=`
     <div class="sheet-head">
       <div class="head-row">
@@ -1614,7 +1722,7 @@ function showHub(keepScroll){
       </div>
       <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${hubTab===k}">${l}</button>`).join('')}</div>
     </div>`;
-  const body=hubTab==='tour'?tourHTML():hubTab==='standings'?standingsHTML():hubTab==='golfer'?golferHTML():shopHTML();
+  const body=hubTab==='tour'?tourHTML():hubTab==='standings'?standingsHTML():hubTab==='career'?careerTabHTML():hubTab==='golfer'?golferHTML():shopHTML();
   openSheet('hub', head + `<div class="sheet-body">${body}</div>`, null, keepScroll);
   sheet.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ if(hubTab!==b.dataset.tab){ hubTab=b.dataset.tab; Sound.tick(); showHub(); } });
   sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') playCurrent(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
@@ -1638,7 +1746,7 @@ function careerCard(){
 }
 function eventMeta(e){
   const owed=e.fee>save.cash && e.fee>0;
-  return `${e.tagline?`<strong>${e.tagline}</strong><br>`:''}${e.pars.length} holes · par ${e.par} · field of ${e.kind==='champ'?6:e.roster.length+1} · wind up to ${e.windMax} mph<br>
+  return `${e.tagline?`<strong>${e.tagline}</strong><br>`:''}${e.pars.length} holes · par ${e.par} · field of ${e.kind==='champ'?6:tierRoster(e.kind==='q'?Math.min(3,e.tier+1):e.tier).length+1} · wind up to ${e.windMax} mph<br>
     Winner <strong>${money(e.payouts[0])}</strong> · Entry <strong>${e.fee?money(e.fee):'Free'}</strong>${owed?' (on credit, taken from winnings)':''}${e.kind==='q'?'':` · ${e.mult>1?'<strong>Double points</strong>':'Standings points'}`}`;
 }
 function tourHTML(){
@@ -1652,6 +1760,7 @@ function tourHTML(){
     const step=c.phase==='season'?`Event ${c.k+1} of 8 · ${season().name}`:c.phase==='champ'?'Season finale · Top 6 only':'Q-School · win to move up';
     next=`<div class="ev" style="border-color:var(--ink)"><div class="ev-top"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="ev-step">Next up · ${step}</span><span class="ev-name">${e.name}</span></div>${e.major?'<span class="trophy">Major</span>':''}</div>
       <div class="ev-meta">${eventMeta(e)}</div>
+      ${nem() && (e.kind!=='champ' || rank<=6) ? `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(nem().name)}:</b> "${nemQuote('pre')}"</div>`:''}
       <div class="row"><button class="btn primary sm" type="button" data-act="play">Tee off${e.fee?' · '+money(e.fee):''}</button>${c.phase==='qschool'?'<button class="btn ghost sm" type="button" data-act="skipq">Skip, replay the year</button>':''}</div></div>`;
   }
   const row=(n,ev,res,cur,chipS)=>`<div class="srow ${cur?'next':res?'done':''}"><span class="n">${n}</span><span class="nm"><b>${ev.name}</b><small>${ev.set==='azalea'?'parkland':ev.set} · ${ev.pars.length} holes${ev.major?' · major':''}</small></span>
@@ -1660,7 +1769,6 @@ function tourHTML(){
     + row('★',T.champEv,c.played.champ,c.phase==='champ','<span class="chip-s" style="background:var(--pine-2)">Top 6</span>')
     + (c.phase==='qschool'?row('Q',T.qEv,null,true,''):'');
   return careerCard() + next + `<h3 class="sec">${T.name} schedule · Year ${c.year}</h3><div class="sched">${rows}</div>
-    ${careerLine()}
     <details class="how"><summary>How to play</summary><ul class="howto">
       <li>Drag back from anywhere and let go to swing. A longer pull hits harder.</li>
       <li>Pull past the white tick to overswing. You get extra distance, but risk a hook or slice.</li>
@@ -1677,7 +1785,7 @@ function standingsHTML(){
   const note=c.tier<3?`After the Tour Championship, the top 2 move up to the <strong>${TOUR[c.tier+1].name}</strong>. Top 6 qualify for the Championship.`:'Finish 1st after the Tour Championship to be <strong>Player of the Year</strong>.';
   return `<div class="field">${note}</div>
     <table class="lb"><thead><tr><th>Pos</th><th>Player</th><th class="r">Wins</th><th class="r">Points</th></tr></thead><tbody>${
-      rows.map((r,i)=>`<tr class="${r.you?'you':''} ${i===2&&c.tier<3?'cutline':''} ${i===6?'cutline':''}"><td class="pos">${i+1}</td><td>${esc(r.name)}</td><td class="r">${r.wins}</td><td class="num">${r.pts}</td></tr>`).join('')
+      rows.map((r,i)=>`<tr class="${r.you?'you':''} ${r.nem?'nem':''} ${i===2&&c.tier<3?'cutline':''} ${i===6?'cutline':''}"><td class="pos">${i+1}</td><td>${esc(r.name)}${r.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${r.wins}</td><td class="num">${r.pts}</td></tr>`).join('')
     }</tbody></table>
     <div class="career">${T.name} · Year ${c.year} · ${Object.keys(c.played).filter(k=>k!=='champ'&&k!=='q').length} of 8 events played</div>`;
 }
@@ -1721,6 +1829,7 @@ function showHoleSheet(i,score){
       <span class="head-sub">${score} stroke${score===1?'':'s'}${score>=MAX_STROKES?' (picked up)':''}</span>
     </div>
     <div class="sheet-body">
+      ${nemHoleLine(i)}
       ${boardHTML()}
       <div class="row"><button class="btn primary" id="nextBtn" type="button">${last?'Final results':'Next hole'}</button></div>
     </div>`, '#nextBtn');
@@ -1737,11 +1846,11 @@ function sumRel(scores, pars){ return scores.reduce((a,s,i)=>a+s-pars[i],0); }
 function yearEnd(){
   const c=career(), rank=myRank(), T=tierDef();
   if(c.tier<3 && rank<=2){
-    const to=TOUR[c.tier+1].name; c.tier++; newYear(); save.stats.promotions=(save.stats.promotions||0)+1;
+    const to=TOUR[c.tier+1].name; addTrophy('promo:'+(c.tier+1), `${to} card`, 'promo'); c.tier++; newYear(); save.stats.promotions=(save.stats.promotions||0)+1;
     return `<div class="season" style="--sc:#1f6b45"><div class="season-top"><span>Promotion</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">Welcome to the ${to}</span><span class="season-blurb">Bigger purses, tougher courses, and a stronger field start now.</span></div>`;
   }
   if(c.tier===3){
-    const poy=rank===1; if(poy) save.stats.poy=(save.stats.poy||0)+1; newYear();
+    const poy=rank===1; if(poy){ save.stats.poy=(save.stats.poy||0)+1; addTrophy('poy','Player of the Year','poy'); } newYear();
     return `<div class="season" style="--sc:${poy?'#8a6a12':'#3f6c8a'}"><div class="season-top"><span>Season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">${poy?'Player of the Year':'Year '+(career().year)+' awaits'}</span><span class="season-blurb">${poy?'You topped the Pro Tour. That is the summit of Texas golf.':'A new Pro Tour season starts in spring.'}</span></div>`;
   }
   c.phase='qschool';
@@ -1757,13 +1866,18 @@ function finishEvent(wd){
   const label=wd?'WD':(tied?'T':'')+myPos;
   let pts=totals.map(()=>0);
   if(kind!=='q'){ pts=awardPoints(totals, EV.mult); if(wd) pts[0]=0; keys.forEach((k,i)=>{ c.pts[k]=(c.pts[k]||0)+pts[i]; }); if(outright){ const w=keys[order[0]]; c.wins[w]=(c.wins[w]||0)+1; } }
-  const champ=!wd && myPos===1 && !tied;
+  const champ=!wd && myPos===1 && !tied, tierAt=c.tier;
   const prize=wd?0:(EV.payouts[myPos-1]||0), owed=EV._owed||0, net=Math.max(0, prize-owed);
   save.cash+=net;
   const s=save.stats, r=rec(EV.id);
   if(!wd){ s.events++; s.earnings+=net; if(champ) s.wins++; if(s.best===null || totals[0]<s.best) s.best=totals[0];
     r.played++; if(champ) r.wins++; if(r.bestFinish===null || myPos<r.bestFinish) r.bestFinish=myPos; if(r.bestScore===null || totals[0]<r.bestScore) r.bestScore=totals[0]; }
   const myPts=Math.round(pts[0]);
+  if(!wd){ if(myPos<=5) s.top5=(s.top5||0)+1;
+    const implied=(0.30+0.25*EV.diff+season().rival-totals[0]/pars.length)/0.62; save.form=(save.form||[]).concat([clamp(implied,0,1)]).slice(-6); }
+  if(champ && EV.major){ s.majors=(s.majors||0)+1; addTrophy('major:'+EV.id, EV.name, 'major'); }
+  if(champ && kind==='champ') addTrophy('champ:'+tierAt, EV.name, 'champ');
+  let nemNote=nemesisAfterEvent(keys, totals, wd);
   let note='';
   if(kind==='season'){
     c.played[c.k]={label, pts:myPts};
@@ -1773,7 +1887,7 @@ function finishEvent(wd){
   } else if(kind==='champ'){
     c.played.champ={label, pts:myPts}; note=yearEnd();
   } else {
-    if(champ){ const to=TOUR[c.tier+1].name; c.tier++; newYear(); save.stats.promotions=(save.stats.promotions||0)+1;
+    if(champ){ addTrophy('qschool','Q-School','q'); const to=TOUR[c.tier+1].name; addTrophy('promo:'+(c.tier+1), `${to} card`, 'promo'); c.tier++; newYear(); save.stats.promotions=(save.stats.promotions||0)+1;
       note=`<div class="season" style="--sc:#1f6b45"><div class="season-top"><span>Q-School</span><span>Won it</span></div><span class="season-name">Welcome to the ${to}</span><span class="season-blurb">You earned your card the hard way.</span></div>`; }
     else { newYear(); note=`<div class="career">Only a win gets through Q-School. Year ${c.year} starts back on the ${tierDef().name}.</div>`; }
   }
@@ -1788,7 +1902,7 @@ function finishEvent(wd){
       <span class="head-sub">${wd?'No points or prize money':`${playerScores.reduce((a,b)=>a+b,0)} strokes · ${fmtPar(totals[0])}${tied&&myPos===1?' · a tie does not count as a win':''}`}</span>
     </div>
     <div class="sheet-body">
-      ${note}
+      ${note}${nemNote}
       <div class="facts">
         <div><span class="lbl">Prize</span><b>${money(net)}</b></div>
         <div><span class="lbl">${kind==='q'?'Bank':'Points'}</span><b>${kind==='q'?money(save.cash):'+'+myPts}</b></div>
@@ -1805,7 +1919,7 @@ function showResults(){ finishEvent(false); }
 // the player missed the Championship: play it out without them
 function simulateChamp(){
   const c=career(), T=tierDef(), e=T.champEv, top=tableRows().filter(r=>!r.you).slice(0,6);
-  const res=top.map(r=>{ const sk=Math.min(.97,T.roster.find(x=>x[0]===r.n)[1]+e.boost), f=gauss()*.1; return {n:r.n, tot:e.pars.reduce((a,p)=>a+rivalScore(p,sk,e.diff,f)-p,0)}; });
+  const full=tierRoster(c.tier), nn=nem(); const res=top.map(r=>{ const isN=!!(nn&&r.n===nn.name), sk=isN?nemSkill(c.tier):Math.min(.97,full.find(x=>x[0]===r.n)[1]+e.boost), f=gauss()*.1; return {n:r.n, tot:e.pars.reduce((a,p)=>a+rivalScore(p,sk,e.diff,f,isN?nn.persona:null)-p,0)}; });
   const pts=awardPoints(res.map(x=>x.tot), e.mult); res.forEach((x,i)=>{ c.pts[x.n]=(c.pts[x.n]||0)+pts[i]; });
   const best=Math.min(...res.map(x=>x.tot)); if(res.filter(x=>x.tot===best).length===1){ const w=res.find(x=>x.tot===best).n; c.wins[w]=(c.wins[w]||0)+1; }
   c.played.champ={label:'DNQ', pts:0};

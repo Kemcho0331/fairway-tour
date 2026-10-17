@@ -264,6 +264,11 @@ details.how summary{cursor:pointer;font:600 12px/1.2 var(--body);letter-spacing:
   .xitem{flex-wrap:wrap;align-items:flex-start}
   .xsrc{max-width:none;width:100%;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding-left:42px;text-align:left}
 }
+.sheet-head.cere{background:linear-gradient(160deg,#5c4708,#8a6a12 55%,#17452f)}
+.invite{border:1.5px solid var(--ink);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--hi)}
+.invite .kicker{color:#8a6a12}
+.invite b{font:800 italic 26px/1 var(--display);text-transform:uppercase}
+.invite span:last-child{font:500 13.5px/1.45 var(--body)}
 @media (prefers-reduced-motion:reduce){
   .toast,.banner,.val svg{transition:none}
 }
@@ -876,7 +881,7 @@ const TOUR = [
             ['thicket','Big Thicket Invitational','bayou',6],['elpaso','El Paso Desert Open','desert',6],['fredericksburg','Fredericksburg Classic','hill',6],['houston','Houston Challenger','parkland',6]],
     champ:['chalchamp','Challenger Tour Championship','azalea',6,30000] },
   { name:'Pro Tour', boost:.4, diff:[.65,.95], fee:[5000,12000], win:[30000,60000], q:0,
-    roster:[['Dalton Pierce',.74],['Javier Castillo',.68],['Reid Hollister',.62],['Shane Kowalski',.57],['Malik Freeman',.52],['Brent Okoro',.48],['Cole Hartley',.44],['Andre Villarreal',.4],['Ty Beckett',.36],['Sung-min Lee',.32],['Clay Whitaker',.28]],
+    roster:[['Dalton Pierce',.63],['Javier Castillo',.59],['Reid Hollister',.56],['Shane Kowalski',.53],['Malik Freeman',.50],['Brent Okoro',.47],['Cole Hartley',.44],['Andre Villarreal',.4],['Ty Beckett',.36],['Sung-min Lee',.32],['Clay Whitaker',.28]],
     events:[['dallas','Dallas Classic','parkland',6],['masters','Texas Masters','azalea',9,{major:true,tag:'A major. Azaleas, slick greens, and the toughest field of the spring.'}],['bayoucity','Bayou City Classic','bayou',7],['galvbay','Galveston Bay Championship','coast',7,{sig:'island'}],
             ['austin','Austin Open','hill',7],['transpecos','Trans-Pecos Open','desert',7],['panhandle','Panhandle Open','plains',7],['lonestar','Lone Star Championship','parkland',9,{major:true,tag:'A major. The biggest stage in Texas golf.'}]],
     champ:['prochamp','Pro Tour Championship','azalea',9,120000] },
@@ -936,13 +941,17 @@ const PERSONAS = {
     win:["Did you see that eagle? Everybody did.","Thanks for the supporting role."], lose:["Fine. You get one highlight reel.","The cameras were on me anyway."]},
 };
 const SETTLE_WINS = 5;
+// the Pro Tour's best can climb past everyone else, and the field sharpens every year after you become Texas Champion
+const fieldHeat = t => t===3 ? (save.proHeat||0) : 0;
+const skillCap = t => t===3 ? 1.03+fieldHeat(t) : 0.97;
+const HEAT_STEP = 0.015, HEAT_MAX = 0.09;
 const nem = () => save.nem || null;
 const firstName = n => n.split(' ')[0];
 function personaFor(name){ return ['bomber','grinder','showman'][idSeed(name)%3]; }
 // the nemesis plays just ahead of your recent form, never below the middle of the tier
 function nemSkill(t){
   const f=save.form||[], base=f.length ? f.reduce((a,b)=>a+b,0)/f.length : 0.45, T=TOUR[t];
-  return clamp(base+0.05, T.roster[3][1]+T.boost, 0.97);
+  return clamp(base+0.05, T.roster[3][1]+T.boost+fieldHeat(t), skillCap(t));
 }
 // a tier's roster, plus your nemesis if they followed you up from another tier
 function tierRoster(t){ const ros=TOUR[t].roster.slice(), n=nem(); if(n && !ros.some(r=>r[0]===n.name)) ros.push([n.name, null]); return ros; }
@@ -1751,7 +1760,7 @@ function newTournament(){
   HOLES=EV.holes;
   const rt = EV.kind==='q' ? Math.min(3,EV.tier+1) : EV.tier, full=tierRoster(rt), n=nem();
   const ros = EV.kind==='champ' ? tableRows().filter(r=>!r.you).slice(0,5).map(r=>full.find(x=>x[0]===r.n)) : full;
-  field=[{name:'You',you:true}, ...ros.map(([name,sk])=>{ const isN=!!(n&&name===n.name), skill=isN?nemSkill(rt):Math.min(0.97,sk+EV.boost), form=gauss()*0.1, per=isN?n.persona:null; return {name, skill, nem:isN, scores:HOLES.map(h=>rivalScore(h.par,skill,EV.diff,form,per))}; })];
+  field=[{name:'You',you:true}, ...ros.map(([name,sk])=>{ const isN=!!(n&&name===n.name), skill=isN?nemSkill(rt):Math.min(skillCap(rt),sk+EV.boost+fieldHeat(rt)), form=gauss()*0.1, per=isN?n.persona:null; return {name, skill, nem:isN, scores:HOLES.map(h=>rivalScore(h.par,skill,EV.diff,form,per))}; })];
   playerScores=[]; duckUsed=false; resetRS();
   HOLES.forEach(h=>setPin(h, h.pins[(Math.random()*h.pins.length)|0]));
   startHole(0);
@@ -1970,8 +1979,9 @@ $('#rack').addEventListener('click',e=>{ const b=e.target.closest('.club'); if(!
 function selectClub(i){ if(state!=='ready'||i===clubIdx) return; clubIdx=i; Sound.tick(); renderRack(); }
 
 let toastTimer=null;
-function toast(msg,ms=1800){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); if(ms>0) toastTimer=setTimeout(hideToast,ms); }
-function hideToast(){ $('#toast').classList.remove('show'); }
+let toastSticky=false;
+function toast(msg,ms=1800){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastSticky=ms<=0; if(ms>0) toastTimer=setTimeout(hideToast,ms); }
+function hideToast(){ toastSticky=false; $('#toast').classList.remove('show'); }
 
 function setOverview(on){ overview=on; $('#viewBtn').setAttribute('aria-pressed',String(on)); }
 const SOUND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
@@ -1983,12 +1993,12 @@ function toggleSound(){ Sound.init(); Sound.setMuted(!Sound.muted); save.muted=S
 /* ---------- Sheets ---------- */
 const overlay=$('#overlay'), sheet=$('#sheet');
 let sheetKind=null, hubTab='tour';
-function openSheet(kind,html,focusSel,keepScroll){ const st=keepScroll?sheet.scrollTop:0; sheetKind=kind; sheet.innerHTML=html; overlay.hidden=false; sheet.scrollTop=st; const f=focusSel&&sheet.querySelector(focusSel); if(f) setTimeout(()=>f.focus({preventScroll:true}),30); }
+function openSheet(kind,html,focusSel,keepScroll){ if(toastSticky) hideToast(); const st=keepScroll?sheet.scrollTop:0; sheetKind=kind; sheet.innerHTML=html; overlay.hidden=false; sheet.scrollTop=st; const f=focusSel&&sheet.querySelector(focusSel); if(f) setTimeout(()=>f.focus({preventScroll:true}),30); }
 function closeSheet(){ overlay.hidden=true; sheetKind=null; }
 function careerLine(){ const s=save.stats; if(!s.events) return ''; return `<div class="career">Career: ${s.events} event${s.events===1?'':'s'} · ${s.wins} win${s.wins===1?'':'s'} · best round ${fmtPar(s.best)} · ${s.birdies} birdies or better${s.hio?` · ${s.hio} hole${s.hio===1?'':'s'} in one`:''} · ${money(s.earnings)} earned</div>`; }
 
 function showHub(keepScroll){
-  hideToast(); state='menu'; updateHud(); $('#rack').innerHTML='';
+  state='menu'; updateHud(); $('#rack').innerHTML='';
   const tabs=[['tour','Tour'],['standings','Points'],['career','Career'],['golfer','Golfer'],['shop','Shop']];
   const head=`
     <div class="sheet-head">
@@ -2014,7 +2024,7 @@ function showHub(keepScroll){
 function careerCard(){
   const c=career(), T=tierDef(), S=season(), rows=tableRows(), me=rows.find(r=>r.you), rank=rows.indexOf(me)+1;
   const dots=Array.from({length:8},(_,k)=>`<i class="${c.played[k]?'on':''}"></i>`).join('')+`<i class="${c.played.champ?'on':''}" style="border-radius:2px"></i>`;
-  const goal=c.tier<3?'Top 2 move up · Top 6 make the Championship':'Finish 1st to be Player of the Year';
+  const goal=c.tier<3?'Top 2 move up · Top 6 make the Championship':`Finish 1st to be Player of the Year${fieldHeat(3)>0?` · Field level +${Math.round(fieldHeat(3)/HEAT_STEP)}`:''}`;
   return `<div class="season" style="--sc:${S.color}">
     <div class="season-top"><span>${T.name} · Year ${c.year}</span><span>${ordinal(rank)} · ${me.pts} pts</span></div>
     <span class="season-name">${S.name}</span>
@@ -2055,6 +2065,7 @@ function tourHTML(){
       <li>Each tier plays 8 events, two per season. Finishes earn standings points, and majors and the Championship count double.</li>
       <li>The top 6 play the Tour Championship. The top 2 after it move up a tier. Miss out and you can try Q-School, where only a win gets you through.</li>
       <li>Short on money? You can still enter. The fee comes out of your winnings.</li>
+      <li>Win Player of the Year on the Pro Tour to become Texas Champion. After that, the Pro field gets sharper every year.</li>
       <li>Before each event, pick a sponsor goal to chase. Clear every goal in a set to earn that sponsor's gear. Signature clubs swap into your bag in place of your shop club.</li>
     </ul></details>
     <div class="row"><button class="btn ghost sm" id="soundToggle" type="button">${Sound.muted?'Sound off':'Sound on'}</button></div>`;
@@ -2160,7 +2171,12 @@ function yearEnd(){
     return `<div class="season" style="--sc:#1f6b45"><div class="season-top"><span>Promotion</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">Welcome to the ${to}</span><span class="season-blurb">Bigger purses, tougher courses, and a stronger field start now.</span></div>`;
   }
   if(c.tier===3){
-    const poy=rank===1; if(poy){ save.stats.poy=(save.stats.poy||0)+1; addTrophy('poy','Player of the Year','poy'); } newYear();
+    const poy=rank===1, first=poy&&!save.texasChamp;
+    if(poy){ save.stats.poy=(save.stats.poy||0)+1; addTrophy('poy','Player of the Year','poy'); }
+    if(first){ save.texasChamp={year:c.year}; save.pendingCeremony=true; }
+    if(save.texasChamp) save.proHeat=Math.min(HEAT_MAX,(save.proHeat||0)+HEAT_STEP);
+    newYear();
+    if(first) return `<div class="season" style="--sc:#8a6a12"><div class="season-top"><span>Season over</span><span>Finished 1st</span></div><span class="season-name">Texas Champion</span><span class="season-blurb">Player of the Year on the Pro Tour. Head to the clubhouse. Something is waiting for you.</span></div>`;
     return `<div class="season" style="--sc:${poy?'#8a6a12':'#3f6c8a'}"><div class="season-top"><span>Season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">${poy?'Player of the Year':'Year '+(career().year)+' awaits'}</span><span class="season-blurb">${poy?'You topped the Pro Tour. That is the summit of Texas golf.':'A new Pro Tour season starts in spring.'}</span></div>`;
   }
   c.phase='qschool';
@@ -2224,13 +2240,29 @@ function finishEvent(wd){
       <div class="row"><button class="btn primary" id="hubBtn" type="button">Clubhouse</button></div>
     </div>`, '#hubBtn');
   if(champ) Sound.cheer(1.2);
+  $('#hubBtn').onclick=()=>{ hubTab='tour'; if(save.pendingCeremony) showCeremony(); else showHub(); };
+}
+function showCeremony(){
+  save.pendingCeremony=false; persist();
+  const s=save.stats, tc=save.texasChamp||{year:career().year}, tro=Object.keys(save.trophies).length, past=save.nemPast||[];
+  const fact=(l,v)=>`<div><span class="lbl">${l}</span><b>${v}</b></div>`;
+  openSheet('ceremony',`
+    <div class="sheet-head cere"><span class="kicker">Year ${tc.year} · Pro Tour</span><span class="title gold">Texas Champion</span>
+      <span class="head-sub">${esc(playerName()==='You'?'You':playerName())} topped the Pro Tour. From the Amateur tour to the summit of Texas golf.</span></div>
+    <div class="sheet-body">
+      <div class="facts facts4">${fact('Years',tc.year)}${fact('Events',s.events)}${fact('Wins',s.wins)}${fact('Majors',s.majors||0)}${fact('Top 5s',s.top5||0)}${fact('Earnings',money(s.earnings))}${fact('Best round',s.best===null?'-':fmtPar(s.best))}${fact('Trophies',tro)}</div>
+      <div class="career" style="border:0;padding:0">${s.promotions||0} promotion${s.promotions===1?'':'s'} · ${s.birdies} birdies or better${s.hio?` · ${s.hio} hole${s.hio===1?'':'s'} in one`:''}${past.length?` · rivalries settled with ${past.map(p=>esc(p.name)).join(', ')}`:''}</div>
+      <div class="invite"><span class="kicker">An envelope arrives</span><b>The National Tour wants you</b><span>Fifteen state champions from across the country are waiting, and you will be Texas's champion among them. The National Tour opens in a coming update. Until then, defend your title. Every year from now on, the Texas Pro field gets a little sharper.</span></div>
+      <div class="row"><button class="btn primary" id="hubBtn" type="button">Keep playing</button></div>
+    </div>`, '#hubBtn');
+  Sound.cheer(1.4);
   $('#hubBtn').onclick=()=>{ hubTab='tour'; showHub(); };
 }
 function showResults(){ finishEvent(false); }
 // the player missed the Championship: play it out without them
 function simulateChamp(){
   const c=career(), T=tierDef(), e=T.champEv, top=tableRows().filter(r=>!r.you).slice(0,6);
-  const full=tierRoster(c.tier), nn=nem(); const res=top.map(r=>{ const isN=!!(nn&&r.n===nn.name), sk=isN?nemSkill(c.tier):Math.min(.97,full.find(x=>x[0]===r.n)[1]+e.boost), f=gauss()*.1; return {n:r.n, tot:e.pars.reduce((a,p)=>a+rivalScore(p,sk,e.diff,f,isN?nn.persona:null)-p,0)}; });
+  const full=tierRoster(c.tier), nn=nem(); const res=top.map(r=>{ const isN=!!(nn&&r.n===nn.name), sk=isN?nemSkill(c.tier):Math.min(skillCap(c.tier),full.find(x=>x[0]===r.n)[1]+e.boost+fieldHeat(c.tier)), f=gauss()*.1; return {n:r.n, tot:e.pars.reduce((a,p)=>a+rivalScore(p,sk,e.diff,f,isN?nn.persona:null)-p,0)}; });
   const pts=awardPoints(res.map(x=>x.tot), e.mult); res.forEach((x,i)=>{ c.pts[x.n]=(c.pts[x.n]||0)+pts[i]; });
   const best=Math.min(...res.map(x=>x.tot)); if(res.filter(x=>x.tot===best).length===1){ const w=res.find(x=>x.tot===best).n; c.wins[w]=(c.wins[w]||0)+1; }
   c.played.champ={label:'DNQ', pts:0};
@@ -2464,7 +2496,7 @@ if(save.carried) delete save.caddie;
 if(save.caddie){ const refund=save.caddie>=2?115000:25000; save.cash+=refund; delete save.caddie; persist(); setTimeout(()=>toast(`Caddies are gone. ${money(refund)} refunded to your bank.`,3600),600); }
 Sound.setSeason(season().id);
 renderSound();
-showHub();
+if(save.pendingCeremony) showCeremony(); else showHub();
 if(save.carried){ delete save.carried; persist(); setTimeout(()=>toast('New career on the Amateur tour. Your golfer came with you.',3400),400); }
 requestAnimationFrame(frame);
 })();

@@ -255,6 +255,11 @@ details.how summary{cursor:pointer;font:600 12px/1.2 var(--body);letter-spacing:
 .xsrc b.owned{color:#1f6b45}
 .xsrc small{display:flex;gap:5px;align-items:center;font:500 11px/1 var(--body);color:var(--muted);white-space:nowrap}
 .xitem.locked .item-name{color:var(--muted)}
+.xsort{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.xsort .lbl{margin-right:4px}
+.xgroup{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:6px;padding:6px 0 6px 10px;border-left:4px solid var(--gc);background:linear-gradient(90deg,rgba(0,0,0,.04),transparent)}
+.xgroup b{font:700 17px/1 var(--display);text-transform:uppercase}
+.xgroup small{font:500 11.5px/1 var(--body);color:var(--muted);white-space:nowrap;padding-right:4px}
 @media (max-width:440px){
   .xitem{flex-wrap:wrap;align-items:flex-start}
   .xsrc{max-width:none;width:100%;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding-left:42px;text-align:left}
@@ -1997,6 +2002,7 @@ function showHub(keepScroll){
   openSheet('hub', head + `<div class="sheet-body">${body}</div>`, null, keepScroll);
   sheet.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ if(hubTab!==b.dataset.tab){ hubTab=b.dataset.tab; Sound.tick(); showHub(); } });
   sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
+  sheet.querySelectorAll('[data-xsort]').forEach(b=>b.onclick=()=>{ save.exclSort=b.dataset.xsort; persist(); Sound.tick(); showHub(true); });
   sheet.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUpgrade(b.dataset.up));
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));
   sheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>buyColor(b.dataset.color));
@@ -2106,10 +2112,19 @@ function shopExclHTML(){
     if(k==='ball') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#c4cac2)"></span>`;
     if(k==='watch') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle,#fbf0c6 0 42%,#c9a227 44% 70%,transparent 72%)"></span>`;
     return `<span class="xprev xclub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3 9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M9 17c-1 2-3 3.5-5.5 3.5-.8 0-1-.9-.3-1.3L8 16.5z" fill="currentColor"/></svg></span>`; };
-  const groups=[['club'],['ball'],['color'],['shirt','hat','pants','watch']];
-  return groups.map(ks=>Object.entries(ITEMS).filter(([,it])=>ks.includes(it.kind)).sort((a,b)=>src[a[0]].s.tier-src[b[0]].s.tier||src[a[0]].rank-src[b[0]].rank).map(([id,it])=>{ const {s,rank}=src[id], own=hasItem(id);
+  const mode=save.exclSort||'type';
+  const row=([id,it])=>{ const {s,rank}=src[id], own=hasItem(id);
     return `<div class="item xitem ${own?'':'locked'}">${prev(it)}<div class="item-main"><span class="item-name">${it.name}${it.kind==='club'?` <span class="tier t${it.tier}">${TIERS[it.tier]}</span>`:''}</span><span class="item-desc">${it.desc||KIND[it.kind]}</span></div>
-      <div class="xsrc">${own?'<b class="owned">Owned</b>':`<b style="color:${s.color}">${s.name}</b>`}<small>${rankChip(rank)} ${TOUR[s.tier].name}</small></div></div>`; }).join('')).join('');
+      <div class="xsrc">${own?'<b class="owned">Owned</b>':mode==='sponsor'?'':`<b style="color:${s.color}">${s.name}</b>`}<small>${rankChip(rank)} ${TOUR[s.tier].name}</small></div></div>`; };
+  const all=Object.entries(ITEMS), byTour=(a,b)=>src[a[0]].s.tier-src[b[0]].s.tier||src[a[0]].rank-src[b[0]].rank;
+  const head=(label,col,count)=>`<div class="xgroup" style="--gc:${col}"><b>${label}</b><small>${count}</small></div>`;
+  const got=list=>`${list.filter(([id])=>hasItem(id)).length} of ${list.length} earned`;
+  let groups;
+  if(mode==='sponsor') groups=SPONSORS.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(sp=>[sp.name, sp.color, all.filter(([id])=>src[id].s===sp).sort((a,b)=>src[a[0]].rank-src[b[0]].rank)]);
+  else if(mode==='level') groups=[3,2,1,0].map(r=>[RANKS[r], RANK_COL[r], all.filter(([id])=>src[id].rank===r).sort((a,b)=>src[a[0]].s.tier-src[b[0]].s.tier||src[a[0]].s.name.localeCompare(src[b[0]].s.name))]);
+  else groups=[['Signature clubs',['club']],['Sponsor balls',['ball']],['Ball colors',['color']],['Apparel',['shirt','hat','pants','watch']]].map(([l,ks])=>[l,'var(--pine-2)',all.filter(([,it])=>ks.includes(it.kind)).sort(byTour)]);
+  const bar=`<div class="xsort" role="group" aria-label="Sort sponsor exclusives"><span class="lbl">Sort by</span>${[['type','Type'],['sponsor','Sponsor'],['level','Level']].map(([k,l])=>`<button class="tchip sm" type="button" data-xsort="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>`;
+  return bar+groups.map(([l,col,list])=>head(l,col,got(list))+list.map(row).join('')).join('');
 }
 function buyUpgrade(id){ const t=save.gear[id]||0, price=UPGRADES[id].prices[t]; if(t>=4||save.cash<price) return; save.cash-=price; save.gear[id]=t+1; persist(); Sound.coin(); toast(`${TIERS[t+1]} ${CLUBS.find(c=>c.id===id).name} in the bag`); showHub(true); }
 function buyBall(id){ const b=BALLS.find(x=>x.id===id); if(!save.ballsOwned.includes(id)){ if(save.cash<b.price) return; save.cash-=b.price; save.ballsOwned.push(id); Sound.coin(); toast(`Bought ${b.name}`); } else Sound.tick(); save.ball=id; persist(); showHub(true); }

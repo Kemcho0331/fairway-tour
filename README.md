@@ -24,7 +24,7 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Pro shop with four club tiers, special balls, and ball colors
 - Sponsors on every tier (two on the Challenger and Pro Tours): pick one goal per sponsor before each event, clear a Bronze, Silver, Gold, or Legendary set of goals, and earn that sponsor's exclusive gear
 - Signature clubs from sponsors, fixed to the tier they come from, each with a specialty and a drawback; swap them into your bag in place of your shop clubs
-- Sponsor-only cosmetics: striped polos, hat and pants colors, ball colors, and a gold watch, all listed in the shop with the sponsor that awards each one
+- Sponsor-only cosmetics: striped polos, hat and pants colors, ball colors, and a gold watch, all listed in the shop with the sponsor that awards each one, sortable by type, sponsor, or level
 - Your sponsor goals show on the in-round leaderboard with live progress
 - Sloped greens with break arrows, plus tiered greens with steps between levels
 - A realistic cup: a dead-center putt only drops if it would have stopped about 12 feet past, chips get even less, and off-center balls lip out

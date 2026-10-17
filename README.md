@@ -43,6 +43,9 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Texas Pro Player of the Year winners move up to the National Tour, and old nemeses can come back as state champions with their rivalry intact
 - Seven National course looks, each with its own scenery and twist: Rocky Mountain thin air (+8% carry), Pacific cliffs where the sea wind never drops, Arizona desert resort with brutal misses, soft Florida turf that stops the ball, Carolina sandhills with crowned greens, Midwest parkland with heavy rough, and Northeast links fescue
 - National winter events are played in the sun belt, with no snow
+- Majors on the Pro and National tours are two rounds on the same course with new pins; only the top half and ties make the cut, and a missed cut pays nothing
+- Tension music on the final hole of a major, built from that season's own chords with a heartbeat underneath
+- National sponsors: Summit Outfitters and Keystone Golf Works, with a $100,000 endorsement, the best ball in the game, and a Pro-level signature iron with no drawback
 - A 1,000-point Hall of Fame earned only on the National Tour, with an induction ceremony, a wall of legends, and rare rival inductees
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
 - A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
@@ -52,9 +55,6 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 
 ## Roadmap
 
-- National sponsors
-- Two-round majors with a cut on the Pro and National tours
-- Tension music on the final hole of a major, themed to the season
 - Achievements
 - Driving range, free practice, and a scorecard button
 - New Game+

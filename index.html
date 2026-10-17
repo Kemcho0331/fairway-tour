@@ -926,7 +926,7 @@ function makeEvent(t, k, def, kind){
   const fee=kind==='champ'?0:kind==='q'?T.q:Math.round(r2(T.fee[0],T.fee[1],u)*(o.major?1.4:1)/50)*50;
   const rosterT=kind==='q'?Math.min(3,t+1):t, roster=TOUR[rosterT].roster;
   const e={id, name, tier:t, k, kind, set, pars, par:pars.reduce((a,b)=>a+b,0), diff, boost:TOUR[rosterT].boost+(kind==='q'?0.06:0),
-    windMax:Math.round(S.wind*(0.85+Math.min(t,3)*0.1)), fee, major:!!o.major, mult:(o.major||kind==='champ')?2:1,
+    windMax:Math.round(S.wind*(0.85+Math.min(t,3)*0.1)), fee, rounds:o.major&&t>=3?2:1, major:!!o.major, mult:(o.major||kind==='champ')?2:1,
     tagline:o.tag||TAGS[set]||'', region:o.region||'', roster, payouts:SHARES.map(sh=>Math.round(win*sh/50)*50)};
   let cache=null;
   Object.defineProperty(e,'holes',{get(){
@@ -1020,7 +1020,7 @@ function nemesisAfterEvent(keys, totals, wd){
   return note;
 }
 function nemHoleLine(i){
-  const n=nem(); if(!n) return ''; const p=field.find(f=>f.name===n.name); if(!p) return '';
+  const n=nem(); if(!n) return ''; const p=field.find(f=>f.name===n.name); if(!p) return ''; if(p.cut) return `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(firstName(n.name))}</b> missed the cut and is watching from the clubhouse.</div>`;
   const par=HOLES[i].par, hs=p.scores[i], theirs=p.scores.slice(0,i+1).reduce((a,s,k)=>a+s-HOLES[k].par,0), mine=playerScores.reduce((a,s,k)=>a+s-HOLES[k].par,0), d=theirs-mine;
   const what=scoreName(hs,par).replace('!','').toLowerCase();
   return `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(firstName(n.name))}</b> made ${what==='hole in one'?'a hole in one':what==='par'?'par':'a'+(/^[aeiou]/.test(what)?'n':'')+' '+what} here. ${d>0?`You lead by ${d}.`:d<0?`${firstName(n.name)} leads you by ${-d}.`:'You are all square.'}</div>`;
@@ -1264,6 +1264,14 @@ const ITEMS = {
   lsshirt:   {kind:'shirt', name:'Lone Star stripe', c:'#b0221a', s2:'#f4f5ef'},
   lstour:    {kind:'ball',  name:'Lone Star Tour ball', desc:'+3% carry and bites on landing.', carry:1.03, keep:0.85},
   lsdriver:  {kind:'club',  slot:'driver', tier:4, name:'Lone Star Cannon', short:'Cannon', desc:'Pro-level driver. 5% longer than a Pro driver, but misses are 40% wider.', mod:{carry:1.05, spread:1.4}},
+  summithat: {kind:'hat',   name:'Summit navy hat', c:'#1d2f5c'},
+  summitpolo:{kind:'shirt', name:'Summit stars polo', c:'#1d2f5c', s2:'#c8352b'},
+  summitpants:{kind:'pants', name:'Summit stone pants', c:'#b9b2a2'},
+  summitball:{kind:'color', name:'Platinum ball', c1:'#ffffff', c2:'#9fb3c8', cash:100000, desc:'Plus a $100,000 endorsement check.'},
+  keyball:   {kind:'color', name:'Keystone blue ball', c1:'#a9caff', c2:'#1f4fa8'},
+  keyhat:    {kind:'hat',   name:'Keystone steel hat', c:'#5b6670'},
+  keytour:   {kind:'ball',  name:'Keystone Tour X ball', desc:'+4% carry and bites on landing. The best ball in the game.', carry:1.04, keep:0.85},
+  keyiron:   {kind:'club',  slot:'iron', tier:4, name:'Keystone Forged Iron', short:'Keystone', desc:'Pro-level iron, 3% longer and 15% straighter than a Pro iron, with no drawback.', mod:{carry:1.03, spread:0.85}},
 };
 const SPONSORS = [
   {id:'pecan', tier:0, name:'Pecan Golf Co.', kind:'Clubs and apparel', color:'#8a5a2b', blurb:'A family club shop in Seguin that backs young amateurs.',
@@ -1278,6 +1286,10 @@ const SPONSORS = [
     sets:[{goals:['top:5','under:2'], item:'caphat'}, {goals:['top:3','birdies:4','bogeyfree'], item:'capshirt'}, {goals:['win','under:5','streak:3'], item:'cappants'}, {goals:['major','eagle'], item:'capwatch'}]},
   {id:'lonestar', tier:3, name:'Lone Star Golf Works', kind:'Equipment', color:'#b0221a', blurb:'The biggest club maker in Texas. Tour gear for tour players.',
     sets:[{goals:['fw:4','drive:275'], item:'lsball'}, {goals:['gir:5','no3','putt:30'], item:'lsshirt'}, {goals:['drive:300','sandsave','chipin'], item:'lstour'}, {goals:['gir:7','putt:40'], item:'lsdriver'}]},
+  {id:'summit', tier:4, name:'Summit Outfitters', kind:'Apparel', color:'#1d2f5c', blurb:'A Denver outdoor brand. They pay for wins on the biggest stages.',
+    sets:[{goals:['top:5','under:3'], item:'summithat'}, {goals:['top:3','birdies:5','bogeyfree'], item:'summitpolo'}, {goals:['win','streak:3','under:6'], item:'summitpants'}, {goals:['major','eagle'], item:'summitball'}]},
+  {id:'keystone', tier:4, name:'Keystone Golf Works', kind:'Equipment', color:'#5b6670', blurb:'A Pennsylvania forge. The finest clubs in the country, for the best ball strikers.',
+    sets:[{goals:['fw:5','drive:285'], item:'keyball'}, {goals:['gir:6','no3','putt:35'], item:'keyhat'}, {goals:['drive:310','sandsave','chipin'], item:'keytour'}, {goals:['gir:8','under:6'], item:'keyiron'}]},
 ];
 // sponsor balls and colors join the normal lists, hidden until earned
 Object.entries(ITEMS).forEach(([id,it])=>{
@@ -1429,7 +1441,7 @@ function sponsorSummary(){
 // every sponsor's gear, for the Career tab
 function sponsorGearHTML(){
   const c=career();
-  return SPONSORS.map(s=>{ const st=spState(s.id), note=s.tier>c.tier?`Signs you on the ${TOUR[s.tier].name}`:s.tier<c.tier&&st.set<4?'Contract ended when you moved up':s.tier===c.tier?'Current sponsor':'Contract complete';
+  return SPONSORS.map(s=>{ const st=spState(s.id), note=s.tier===4&&c.tier===3&&save.nat?'On hold until you return to the National Tour':s.tier>c.tier?`Signs you on the ${TOUR[s.tier].name}`:s.tier===3&&c.tier===4&&st.set<4?'On hold while you play the National Tour':s.tier<c.tier&&st.set<4?'Contract ended when you moved up':s.tier===c.tier?'Current sponsor':'Contract complete';
     return `<div class="gear"><div class="gear-top" style="--spc:${s.color}"><b>${s.name}</b><small>${TOUR[s.tier].name} · ${note}</small></div>
       <div class="gear-items">${s.sets.map((x,i)=>{ const got=hasItem(x.item); return `<div class="gi ${got?'':'off'}">${rankChip(i)}<span>${got?'✓ ':''}${itemLabel(x.item)}</span></div>`; }).join('')}</div></div>`; }).join('');
 }
@@ -1574,7 +1586,7 @@ const Sound = (() => {
     fall:  {bpm:78,  wave:'triangle', oct:0,  density:.38, chords:[{root:45,notes:[55,57,60,64]},{root:41,notes:[53,57,60,64]},{root:38,notes:[50,53,57,60]},{root:40,notes:[52,55,59,62]}], scale:[57,60,62,64,67,69,72,74,76,79]},
     winter:{bpm:70,  wave:'sine',     oct:12, density:.42, chords:[{root:39,notes:[55,58,62,63]},{root:36,notes:[51,55,58,62]},{root:44,notes:[56,60,63,67]},{root:46,notes:[53,58,62,65]}], scale:[63,65,67,70,72,75,77,79,82,84]},
   };
-  let mood=MOODS.spring, EIGHTH=60/mood.bpm/2;
+  let mood=MOODS.spring, EIGHTH=60/mood.bpm/2, tension=false;
   const mtof = m => 440*Math.pow(2,(m-69)/12);
   function env(g,t,vol,a,d){ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+d); }
   function tone(f,t,dur,type,vol,dest,a=0.004,fEnd){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.setValueAtTime(f,t); if(fEnd) o.frequency.exponentialRampToValueAtTime(fEnd,t+dur); env(g,t,vol,a,dur); o.connect(g); g.connect(dest); o.start(t); o.stop(t+a+dur+0.05); }
@@ -1582,6 +1594,7 @@ const Sound = (() => {
   function pad(f,t,dur){ [-6,6].forEach(dt=>{ const o=ac.createOscillator(), g=ac.createGain(), lp=ac.createBiquadFilter(); o.type='triangle'; o.frequency.value=f; o.detune.value=dt; lp.type='lowpass'; lp.frequency.value=900; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.03,t+0.6); g.gain.setValueAtTime(0.03,t+dur-0.4); g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.3); o.connect(lp); lp.connect(g); g.connect(musicBus); o.start(t); o.stop(t+dur+0.4); }); }
   function pluck(f,t){ const o=ac.createOscillator(), g=ac.createGain(); o.type=mood.wave; o.frequency.value=f; env(g,t,mood.wave==='sine'?0.09:0.075,0.005,mood.wave==='sine'?0.9:0.5); o.connect(g); g.connect(musicBus); g.connect(delay); o.start(t); o.stop(t+0.6); }
   function playStep(s,t){
+    if(tension) return tenseStep(s,t);
     const bar=Math.floor(s/8), pos=s%8, ch=mood.chords[bar];
     if(pos===0) ch.notes.forEach(m=>pad(mtof(m),t,EIGHTH*8));
     if(pos===0||pos===4){ tone(mtof(ch.root),t,EIGHTH*2.6,'sine',0.17,musicBus,0.01); tone(110,t,0.16,'sine',0.16,musicBus,0.003,42); }
@@ -1589,6 +1602,16 @@ const Sound = (() => {
     if(pos%2===1) noise(t,0.035,0.022,'highpass',7000,0.7,musicBus);
     if(pos===2||pos===6) noise(t,0.07,0.04,'bandpass',1900,1.2,musicBus);
     if(Math.random() < (pos%2===0 ? mood.density : mood.density*0.42)){ mel=clamp(mel+[-2,-1,-1,1,1,2][Math.random()*6|0],0,mood.scale.length-1); pluck(mtof(mood.scale[mel]+mood.oct),t); }
+  }
+  // final hole of a major: the season's own chords and voice, but held, pulsing, with a heartbeat underneath
+  function tenseStep(s,t){
+    const bar=Math.floor(s/8)%2, pos=s%8, ch=mood.chords[bar];
+    if(pos===0) ch.notes.forEach(m=>pad(mtof(m),t,EIGHTH*8));
+    tone(mtof(ch.root),t,EIGHTH*0.8,'triangle',0.06,musicBus,0.01);
+    if(pos===0||pos===1) tone(pos?62:72,t,0.16,'sine',pos?0.26:0.34,musicBus,0.003,38);
+    if(pos%2===1) noise(t,0.03,0.012,'highpass',8000,0.7,musicBus);
+    if(pos===4) tone(mtof(ch.notes[3]+12),t,EIGHTH*3.5,mood.wave,0.035,musicBus,0.2);
+    if(pos%2===0 && Math.random()<mood.density*0.45){ mel=clamp(mel+[-1,-1,1,1,2][Math.random()*5|0],0,mood.scale.length-1); pluck(mtof(mood.scale[mel]+mood.oct),t); }
   }
   function schedule(){ if(!ac) return; while(nextT < ac.currentTime+0.25){ playStep(step,nextT); nextT+=EIGHTH; step=(step+1)%32; } }
   function init(){
@@ -1609,7 +1632,8 @@ const Sound = (() => {
   const now = () => ac.currentTime+0.01;
   return {
     init,
-    setSeason(id){ mood=MOODS[id]||MOODS.spring; EIGHTH=60/mood.bpm/2; if(ac&&delay) delay.delayTime.setTargetAtTime(EIGHTH*1.5, ac.currentTime, 0.3); },
+    setTension(on){ on=!!on; if(on===tension) return; tension=on; EIGHTH=60/(mood.bpm*(tension?1.18:1))/2; },
+    setSeason(id){ mood=MOODS[id]||MOODS.spring; EIGHTH=60/(mood.bpm*(tension?1.18:1))/2; if(ac&&delay) delay.delayTime.setTargetAtTime(EIGHTH*1.5, ac.currentTime, 0.3); },
     get muted(){ return muted; },
     setMuted(m){ muted=m; if(ac) master.gain.setTargetAtTime(m?0:0.9, ac.currentTime, 0.05); },
     suspend(){ if(ac && ac.state==='running') ac.suspend(); },
@@ -2038,7 +2062,7 @@ function rivalScore(par, skill, diff, form, persona){
   return par+Math.min(3,rel);
 }
 function newTournament(){
-  HOLES=EV.holes;
+  HOLES=EV.rounds===2?EV.holes.concat(EV.holes):EV.holes; EV._mc=false;
   const rt = EV.kind==='q' ? Math.min(3,EV.tier+1) : EV.tier, full=tierRoster(rt), n=nem();
   const ros = EV.kind==='champ' ? tableRows().filter(r=>!r.you).slice(0,5).map(r=>full.find(x=>x[0]===r.n)) : full;
   field=[{name:'You',you:true}, ...ros.map(([name,sk])=>{ const isN=!!(n&&name===n.name), skill=isN?nemSkill(rt):Math.min(skillCap(rt),sk+EV.boost+fieldHeat(rt)), form=gauss()*0.1, per=isN?n.persona:null; return {name, skill, nem:isN, scores:HOLES.map(h=>rivalScore(h.par,skill,EV.diff,form,per))}; })];
@@ -2055,7 +2079,7 @@ function gust(){
   if(Math.abs(jump)>=5) toast(jump>0?`Gust! Wind up to ${mph} mph`:`Wind dropped to ${mph} mph`,1500);
 }
 function startHole(i){
-  resetHS(); holeIdx=i; buildHole(HOLES[i]); strokes=0; rollWind(); fx=[]; aim=null;
+  resetHS(); holeIdx=i; Sound.setTension(!!(EV&&EV.major&&i===HOLES.length-1)); buildHole(HOLES[i]); strokes=0; rollWind(); fx=[]; aim=null;
   ball={x:hole.tee.x,y:hole.tee.y,z:0,vx:0,vy:0,t:0,T:1,h:0,sink:0,holed:false,hidden:false,trail:[],keep:1,windMult:1,capture:CAPTURE_V,pull:6,lipped:false};
   lastPos={x:ball.x,y:ball.y}; gpos={x:ball.x,y:ball.y}; swing.phase='address'; swing.cur=G_A0;
   setOverview(true); snapCamera();
@@ -2063,7 +2087,7 @@ function startHole(i){
 }
 function beginIntro(){
   state='intro'; introT=2.6;
-  $('#bnTop').textContent=`${season().name} · ${EV.name} · Hole ${holeIdx+1} of ${HOLES.length}`;
+  $('#bnTop').textContent=`${season().name} · ${EV.name} · ${holeText(holeIdx)}`;
   $('#bnMain').textContent=hole.name;
   $('#bnSub').textContent=`Par ${hole.par} · ${hole.yards} yds · ${hole.pinName} pin`;
   $('#banner').classList.add('show');
@@ -2206,7 +2230,7 @@ function scoreName(score,par){
   return names[r] || (r>0?`+${r}`:`${r}`);
 }
 function completeHole(){
-  state='done'; hideToast();
+  state='done'; hideToast(); Sound.setTension(false);
   const score=Math.min(strokes,MAX_STROKES), i=holeIdx, rel=score-HOLES[i].par;
   playerScores.push(score);
   if(rel<=-1) save.stats.birdies++;
@@ -2219,23 +2243,25 @@ function completeHole(){
 const fmtPar = n => n===0 ? 'E' : n>0 ? `+${n}` : `−${Math.abs(n)}`;
 const money = n => '$'+n.toLocaleString('en-US');
 const ordinal = n => n+(['th','st','nd','rd'][(n%100>10&&n%100<14)?0:(n%10<4?n%10:0)]);
+const roundLen=()=>EV.holes.length;
+function holeText(i, short){ const n=roundLen(); if(EV.rounds!==2) return short?`Hole ${i+1}/${HOLES.length}`:`Hole ${i+1} of ${HOLES.length}`; const rd=i<n?1:2; return short?`R${rd} · Hole ${i%n+1}/${n}`:`Round ${rd} · Hole ${i%n+1} of ${n}`; }
 function standings(){
-  const done=playerScores.length;
-  return field.map(p=>{ const sc=p.you?playerScores:p.scores.slice(0,done); const tot=sc.reduce((a,s,i)=>a+s-HOLES[i].par,0); return {name:p.you?playerName():p.name,you:!!p.you,nem:!!p.nem,tot,thru:sc.length,strokes:sc.reduce((a,b)=>a+b,0)}; })
-    .sort((a,b)=>a.tot-b.tot || (b.you?1:0)-(a.you?1:0));
+  const done=EV._mc?HOLES.length:playerScores.length, n=roundLen();
+  return field.map(p=>{ const mc=p.you?!!EV._mc:!!p.cut, sc=p.you?playerScores:mc?p.scores.slice(0,n):p.scores.slice(0,done); const tot=sc.reduce((a,s,i)=>a+s-HOLES[i].par,0); return {name:p.you?playerName():p.name,you:!!p.you,nem:!!p.nem,mc,tot,thru:sc.length,strokes:sc.reduce((a,b)=>a+b,0)}; })
+    .sort((a,b)=>(a.mc?1:0)-(b.mc?1:0) || a.tot-b.tot || (b.you?1:0)-(a.you?1:0));
 }
-function posOf(st,s){ const pos=1+st.filter(o=>o.tot<s.tot).length; const tied=st.filter(o=>o.tot===s.tot).length>1; return {pos,tied,label:(tied?'T':'')+pos}; }
+function posOf(st,s){ if(s.mc) return {pos:99,tied:false,label:'MC'}; const live=st.filter(o=>!o.mc), pos=1+live.filter(o=>o.tot<s.tot).length; const tied=live.filter(o=>o.tot===s.tot).length>1; return {pos,tied,label:(tied?'T':'')+pos}; }
 function boardHTML(){
   const st=standings();
   return `<table class="lb"><thead><tr><th>Pos</th><th>Player</th><th class="r">Thru</th><th class="r">To par</th></tr></thead><tbody>${
-    st.map(s=>`<tr class="${s.you?'you':''} ${s.nem?'nem':''}"><td class="pos">${posOf(st,s).label}</td><td>${esc(s.name)}${s.you?'':stTag(s.name)}${s.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${s.thru===HOLES.length?'F':s.thru}</td><td class="num ${s.tot<0?'under':''}">${fmtPar(s.tot)}</td></tr>`).join('')
+    st.map(s=>`<tr class="${s.you?'you':''} ${s.nem?'nem':''}"><td class="pos">${posOf(st,s).label}</td><td>${esc(s.name)}${s.you?'':stTag(s.name)}${s.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${s.mc?'MC':s.thru===HOLES.length?'F':s.thru}</td><td class="num ${s.tot<0?'under':''}">${fmtPar(s.tot)}</td></tr>`).join('')
   }</tbody></table>`;
 }
 
 /* ---------- HUD ---------- */
 function updateHud(){
   if(!hole) return;
-  $('#hHole').textContent=`Hole ${holeIdx+1}/${HOLES.length}`;
+  $('#hHole').textContent=holeText(holeIdx,true);
   $('#hPar').textContent=`Par ${hole.par}`;
   $('#hYds').textContent=`${hole.yards} yds`;
   $('#hStrokes').textContent=strokes;
@@ -2279,7 +2305,7 @@ function closeSheet(){ overlay.hidden=true; sheetKind=null; }
 function careerLine(){ const s=save.stats; if(!s.events) return ''; return `<div class="career">Career: ${s.events} event${s.events===1?'':'s'} · ${s.wins} win${s.wins===1?'':'s'} · best round ${fmtPar(s.best)} · ${s.birdies} birdies or better${s.hio?` · ${s.hio} hole${s.hio===1?'':'s'} in one`:''} · ${money(s.earnings)} earned</div>`; }
 
 function showHub(keepScroll){
-  state='menu'; updateHud(); $('#rack').innerHTML='';
+  Sound.setTension(false); state='menu'; updateHud(); $('#rack').innerHTML='';
   const tabs=[['tour','Tour'],['standings','Points'],['career','Career'],['golfer','Golfer'],['shop','Shop']];
   const head=`
     <div class="sheet-head">
@@ -2315,7 +2341,7 @@ function careerCard(){
 }
 function eventMeta(e){
   const owed=e.fee>save.cash && e.fee>0;
-  return `${e.tagline?`<strong>${e.tagline}</strong><br>`:''}${e.pars.length} holes · par ${e.par} · field of ${e.kind==='champ'?6:tierRoster(e.kind==='q'?Math.min(3,e.tier+1):e.tier).length+1} · wind up to ${e.windMax} mph<br>
+  return `${e.tagline?`<strong>${e.tagline}</strong><br>`:''}${e.pars.length} holes${e.rounds===2?' × 2 rounds, cut after round 1':''} · par ${e.par} · field of ${e.kind==='champ'?6:tierRoster(e.kind==='q'?Math.min(3,e.tier+1):e.tier).length+1} · wind up to ${e.windMax} mph<br>
     Winner <strong>${money(e.payouts[0])}</strong> · Entry <strong>${e.fee?money(e.fee):'Free'}</strong>${owed?' (on credit, taken from winnings)':''}${e.kind==='q'?'':` · ${e.mult>1?'<strong>Double points</strong>':'Standings points'}`}`;
 }
 function tourHTML(){
@@ -2332,7 +2358,7 @@ function tourHTML(){
       ${nem() && (e.kind!=='champ' || rank<=6) ? `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(nem().name)}:</b> "${nemQuote('pre')}"</div>`:''}
       <div class="row"><button class="btn primary sm" type="button" data-act="play">Tee off${e.fee?' · '+money(e.fee):''}</button>${c.phase==='qschool'?'<button class="btn ghost sm" type="button" data-act="skipq">Skip, replay the year</button>':''}</div></div>`;
   }
-  const row=(n,ev,res,cur,chipS)=>`<div class="srow ${cur?'next':res?'done':''}"><span class="n">${n}</span><span class="nm"><b>${ev.name}</b><small>${ev.region||(ev.set==='azalea'?'parkland':ev.set)} · ${ev.pars.length} holes${ev.major?' · major':''}</small></span>
+  const row=(n,ev,res,cur,chipS)=>`<div class="srow ${cur?'next':res?'done':''}"><span class="n">${n}</span><span class="nm"><b>${ev.name}</b><small>${ev.region||(ev.set==='azalea'?'parkland':ev.set)} · ${ev.pars.length} holes${ev.rounds===2?' × 2 rounds':''}${ev.major?' · major':''}</small></span>
     <span class="res">${res?`${res.label} · ${res.pts} pts`:cur?'<span class="chip-s" style="background:var(--ink)">Next</span>':chipS}</span></div>`;
   const rows=T.events.map((ev,k)=>{ const S=SEASONS[Math.floor(k/2)]; return row(k+1,ev,c.played[k],c.phase==='season'&&c.k===k,`<span class="chip-s" style="background:${S.color}">${S.name}</span>`); }).join('')
     + row('★',T.champEv,c.played.champ,c.phase==='champ','<span class="chip-s" style="background:var(--pine-2)">Top 6</span>')
@@ -2346,6 +2372,7 @@ function tourHTML(){
       <li>Each tier plays 8 events, two per season. Finishes earn standings points, and majors and the Championship count double.</li>
       <li>The top 6 play the Tour Championship. The top 2 after it move up a tier. Miss out and you can try Q-School, where only a win gets you through.</li>
       <li>Short on money? You can still enter. The fee comes out of your winnings.</li>
+      <li>Majors on the Pro and National tours are two rounds. After round 1, only the top half of the field and ties make the cut. Miss it and you get no points or money.</li>
       <li>Win Player of the Year on the Pro Tour to become Texas Champion and join the National Tour: you plus 15 state champions. Top 10 keep their cards, 11th or worse goes back to Texas.</li>
       <li>National Tour results earn Hall of Fame points. Reach 1,000 to be inducted.</li>
       <li>Before each event, pick a sponsor goal to chase. Clear every goal in a set to earn that sponsor's gear. Signature clubs swap into your bag in place of your shop club.</li>
@@ -2424,19 +2451,19 @@ function buyBall(id){ const b=BALLS.find(x=>x.id===id); if(!save.ballsOwned.incl
 function buyColor(id){ const c=COLORS.find(x=>x.id===id); if(!save.colorsOwned.includes(id)){ if(save.cash<c.price) return; save.cash-=c.price; save.colorsOwned.push(id); Sound.coin(); } else Sound.tick(); save.color=id; persist(); showHub(true); }
 
 function showHoleSheet(i,score){
-  const h=HOLES[i], rel=score-h.par, last=i===HOLES.length-1;
+  const h=HOLES[i], rel=score-h.par, last=i===HOLES.length-1, cutHole=EV.rounds===2 && i===roundLen()-1;
   openSheet('hole',`
     <div class="sheet-head">
-      <span class="kicker">Hole ${i+1} of ${HOLES.length} · ${h.name} · par ${h.par}</span>
+      <span class="kicker">${holeText(i)} · ${h.name} · par ${h.par}</span>
       <span class="title ${rel<0?'gold':''}">${scoreName(score,h.par).replace('!','')}</span>
       <span class="head-sub">${score} stroke${score===1?'':'s'}${score>=MAX_STROKES?' (picked up)':''}</span>
     </div>
     <div class="sheet-body">
       ${nemHoleLine(i)}${goalHoleHTML()}
       ${boardHTML()}
-      <div class="row"><button class="btn primary" id="nextBtn" type="button">${last?'Final results':'Next hole'}</button></div>
+      <div class="row"><button class="btn primary" id="nextBtn" type="button">${last?'Final results':cutHole?'Round 1 results':'Next hole'}</button></div>
     </div>`, '#nextBtn');
-  $('#nextBtn').onclick=()=>{ closeSheet(); if(last) showResults(); else { startHole(i+1); beginIntro(); } };
+  $('#nextBtn').onclick=()=>{ closeSheet(); if(last) showResults(); else if(cutHole) showCut(); else { startHole(i+1); beginIntro(); } };
 }
 function playCurrent(){
   EV=currentEvent(); Sound.init();
@@ -2479,30 +2506,31 @@ function yearEnd(){
   c.phase='qschool';
   return `<div class="season" style="--sc:#5a3f8a"><div class="season-top"><span>Season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">Q-School is next</span><span class="season-blurb">You missed the top 2. Win ${T.qEv.name} to move up anyway, or skip it and replay the year.</span></div>`;
 }
-function finishEvent(wd){
-  const c=career(), kind=EV.kind, pars=HOLES.map(h=>h.par), prevSeason=season().id;
+function finishEvent(wd, mc){
+  const c=career(), kind=EV.kind, pars=HOLES.map(h=>h.par), prevSeason=season().id, RN=EV.holes.length, out=wd||mc;
   const keys=field.map(p=>p.you?ME:p.name);
-  const totals=field.map(p=>p.you ? (wd?999:sumRel(playerScores,pars)) : sumRel(p.scores,pars));
+  // missed cuts rank below everyone who played both rounds
+  const totals=field.map(p=>p.you ? (wd?9999:mc?1000+sumRel(playerScores,pars):sumRel(playerScores,pars)) : p.cut ? 1000+sumRel(p.scores.slice(0,RN),pars) : sumRel(p.scores,pars));
   const best=Math.min(...totals), outright=totals.filter(t=>t===best).length===1;
   const order=totals.map((t,i)=>i).sort((a,b)=>totals[a]-totals[b]);
-  const myPos=wd?null:1+totals.filter(t=>t<totals[0]).length, tied=!wd && totals.filter(t=>t===totals[0]).length>1;
-  const label=wd?'WD':(tied?'T':'')+myPos;
+  const myPos=wd?null:1+totals.filter(t=>t<totals[0]).length, tied=!out && totals.filter(t=>t===totals[0]).length>1;
+  const label=wd?'WD':mc?'MC':(tied?'T':'')+myPos;
   let pts=totals.map(()=>0);
-  if(kind!=='q'){ pts=awardPoints(totals, EV.mult); if(wd) pts[0]=0; keys.forEach((k,i)=>{ c.pts[k]=(c.pts[k]||0)+pts[i]; }); if(outright){ const w=keys[order[0]]; c.wins[w]=(c.wins[w]||0)+1; } }
-  const champ=!wd && myPos===1 && !tied, tierAt=c.tier, yrAt=c.year;
+  if(kind!=='q'){ pts=awardPoints(totals, EV.mult).map((v,i)=>totals[i]>=1000?0:v); if(wd) pts[0]=0; keys.forEach((k,i)=>{ c.pts[k]=(c.pts[k]||0)+pts[i]; }); if(outright){ const w=keys[order[0]]; c.wins[w]=(c.wins[w]||0)+1; } }
+  const champ=!out && myPos===1 && !tied, tierAt=c.tier, yrAt=c.year;
   if(EV.tier===NAT && outright){ const w=keys[order[0]]; if(w!==ME || !wd) addHof(w, kind==='champ'?HOF_PTS.champ:EV.major?HOF_PTS.major:HOF_PTS.win); if(w===ME) save.stats.natWins=(save.stats.natWins||0)+1; }
-  const prize=wd?0:(EV.payouts[myPos-1]||0), owed=EV._owed||0, net=Math.max(0, prize-owed);
+  const prize=out?0:(EV.payouts[myPos-1]||0), owed=EV._owed||0, net=Math.max(0, prize-owed);
   save.cash+=net;
   const s=save.stats, r=rec(EV.id);
-  if(!wd){ s.events++; s.earnings+=net; if(champ) s.wins++; if(s.best===null || totals[0]<s.best) s.best=totals[0];
-    r.played++; if(champ) r.wins++; if(r.bestFinish===null || myPos<r.bestFinish) r.bestFinish=myPos; if(r.bestScore===null || totals[0]<r.bestScore) r.bestScore=totals[0]; }
+  if(!wd){ s.events++; s.earnings+=net; if(champ) s.wins++; r.played++; if(champ) r.wins++; }
+  if(!out){ if(s.best===null || totals[0]<s.best) s.best=totals[0]; if(r.bestFinish===null || myPos<r.bestFinish) r.bestFinish=myPos; if(r.bestScore===null || totals[0]<r.bestScore) r.bestScore=totals[0]; }
   const myPts=Math.round(pts[0]);
-  if(!wd){ if(myPos<=5) s.top5=(s.top5||0)+1;
+  if(!out){ if(myPos<=5) s.top5=(s.top5||0)+1;
     const implied=(0.30+0.25*EV.diff+season().rival-totals[0]/pars.length)/0.62; save.form=(save.form||[]).concat([clamp(implied,0,1)]).slice(-6); }
   if(champ && EV.major){ s.majors=(s.majors||0)+1; addTrophy('major:'+EV.id, EV.name, 'major'); }
   if(champ && kind==='champ') addTrophy('champ:'+tierAt, EV.name, 'champ');
   let nemNote=nemesisAfterEvent(keys, totals, wd);
-  const spNote=sponsorsAfterEvent({wd, pos:myPos, champ}); EV._goals=null;
+  const spNote=sponsorsAfterEvent({wd:out, pos:myPos, champ}); EV._goals=null;
   let note='';
   if(kind==='season'){
     c.played[c.k]={label, pts:myPts};
@@ -2525,8 +2553,8 @@ function finishEvent(wd){
   openSheet('results',`
     <div class="sheet-head">
       <span class="kicker">${EV.name} · final</span>
-      <span class="title ${champ?'gold':''}">${wd?'Withdrew':champ?'Champion':`Finished ${label}`}</span>
-      <span class="head-sub">${wd?'No points or prize money':`${playerScores.reduce((a,b)=>a+b,0)} strokes · ${fmtPar(totals[0])}${tied&&myPos===1?' · a tie does not count as a win':''}`}</span>
+      <span class="title ${champ?'gold':''}">${wd?'Withdrew':mc?'Missed the cut':champ?'Champion':`Finished ${label}`}</span>
+      <span class="head-sub">${wd?'No points or prize money':mc?`${fmtPar(totals[0]-1000)} after round 1 · no points or prize money`:`${playerScores.reduce((a,b)=>a+b,0)} strokes · ${fmtPar(totals[0])}${tied&&myPos===1?' · a tie does not count as a win':''}`}</span>
     </div>
     <div class="sheet-body">
       ${note}${nemNote}${spNote}
@@ -2535,7 +2563,7 @@ function finishEvent(wd){
         <div><span class="lbl">${kind==='q'?'Bank':'Points'}</span><b>${kind==='q'?money(save.cash):'+'+myPts}</b></div>
         <div><span class="lbl">${kind==='q'?'Result':'Standing'}</span><b>${kind==='q'?(champ?'Won':label):ordinal(rk)}</b></div>
       </div>
-      ${owed&&!wd?`<div class="career">Entry fee of ${money(owed)} came out of your winnings.</div>`:''}
+      ${owed&&!out?`<div class="career">Entry fee of ${money(owed)} came out of your winnings.</div>`:''}
       ${wd?'':boardHTML()}
       <div class="row"><button class="btn primary" id="hubBtn" type="button">Clubhouse</button></div>
     </div>`, '#hubBtn');
@@ -2560,6 +2588,26 @@ function showCeremony(){
   openSheet('ceremony', head+`<div class="sheet-body">${body}<div class="row"><button class="btn primary" id="hubBtn" type="button">Keep playing</button></div></div>`, '#hubBtn');
   Sound.cheer(1.4);
   $('#hubBtn').onclick=()=>{ hubTab='tour'; showHub(); };
+}
+// end of round 1 in a major: the top half and ties play on
+function showCut(){
+  const n=roundLen(), rel=sc=>sc.slice(0,n).reduce((a,v,k)=>a+v-HOLES[k].par,0), all=field.map(p=>p.you?rel(playerScores):rel(p.scores)).sort((a,b)=>a-b);
+  const keep=Math.ceil(field.length/2), line=all[keep-1];
+  field.forEach(p=>{ if(!p.you) p.cut=rel(p.scores)>line; });
+  const mine=rel(playerScores), made=mine<=line, nm=nem(), np=nm&&field.find(f=>f.name===nm.name);
+  if(!made){ EV._mc=true; finishEvent(false,true); return; }
+  const playing=field.filter(p=>p.you||!p.cut).length;
+  openSheet('cut',`
+    <div class="sheet-head"><span class="kicker">${EV.name} · round 1 complete</span><span class="title gold">Made the cut</span>
+      <span class="head-sub">Cut line ${fmtPar(line)} · ${playing} of ${field.length} play round 2 · you are ${fmtPar(mine)}</span></div>
+    <div class="sheet-body">
+      ${np?`<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(nm.name)}</b> ${np.cut?'missed the cut.':'made the cut too.'}</div>`:''}
+      <div class="career" style="border:0;padding:0">Round 2 is the same course with new pin positions. Only the 36-hole total counts.</div>
+      ${boardHTML()}
+      <div class="row"><button class="btn primary" id="nextBtn" type="button">Start round 2</button></div>
+    </div>`, '#nextBtn');
+  Sound.cheer(0.5);
+  $('#nextBtn').onclick=()=>{ closeSheet(); EV.holes.forEach(h=>{ const ps=h.pins.filter(p=>p.name!==h.pinName); setPin(h,(ps.length?ps:h.pins)[(Math.random()*(ps.length||h.pins.length))|0]); }); startHole(n); beginIntro(); };
 }
 function showResults(){ finishEvent(false); }
 // the player missed the Championship: play it out without them

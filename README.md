@@ -22,8 +22,11 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Entry fees and steep, tour-style payouts; if you're short, the fee comes out of your winnings
 - Settings include parkland, pines, coast, Hill Country, desert, Galveston links, Caddo Lake bayou, and the windy Panhandle
 - Pro shop with four club tiers, special balls, and ball colors
+- Sponsors on every tier (two on the Challenger and Pro Tours): pick one goal per sponsor before each event, clear a Bronze, Silver, Gold, or Legendary set of goals, and earn that sponsor's exclusive gear
+- Signature clubs from sponsors, fixed to the tier they come from, each with a specialty and a drawback; swap them into your bag in place of your shop clubs
+- Sponsor-only cosmetics: striped polos, hat and pants colors, ball colors, and a gold watch
 - Sloped greens with break arrows, plus tiered greens with steps between levels
-- A tight cup: fast or off-center balls lip out, and chips drop less often than putts
+- A realistic cup: a dead-center putt only drops if it would have stopped about 12 feet past, chips get even less, and off-center balls lip out
 - 15 hole archetypes based on classic golf design: island green, Redan, Biarritz, Eden, bunker ring, long par 3, dogleg, Road hole, Cape, split fairway, Leven, bottle neck, drivable par 4, peninsula green, Hell bunker, reachable par 5, Sahara waste carry, and more
 - Big Bend plays as a true desert course: rocky scrub off the fairway, mesquite, sotol, ocotillo, and boulders
 - Pot bunkers, desert waste areas, drop zones, and the occasional lone tree in the fairway
@@ -41,7 +44,6 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 
 ## Roadmap
 
-- Sponsors with exclusive gear and cosmetics
 - Achievements
 - Driving range, free practice, and a scorecard button
 - Two-round Pro Tour majors with a cut

@@ -248,10 +248,6 @@ const UPGRADES = {
   wedge: {prices:[800,3200,10000,30000],  desc:'+3% distance, cleaner bunker shots, and a gentler overswing per tier'},
   putter:{prices:[600,2500,8000,24000],   desc:'Bigger sweet spot per tier. Firmer putts still drop.'},
 };
-const CADDIES = [
-  {lvl:1, name:'Caddie',         price:25000, desc:'Reads the wind and your lie. Shows the full flight, where it lands, and exact putt distance.'},
-  {lvl:2, name:'Veteran Caddie', price:90000, desc:'Everything the Caddie does, plus the exact break on every putt. Requires the Caddie.'},
-];
 const BALLS = [
   {id:'std',   name:'Tour Standard', price:0,    desc:'Reliable all-rounder.'},
   {id:'grip',  name:'Grip Spin',     price:2500, desc:'Bites on landing. Stops about 25% sooner.', keep:0.75},
@@ -778,7 +774,7 @@ function rollDist(v, fric){ let d=0; const dt=1/120; let n=0; while(v>4 && n++<5
 
 /* ---------- Save ---------- */
 const SAVE_KEY = 'fairway-tour-v2', OLD_KEY = 'fairway-tour-v1';
-function defaultSave(){ return {cash:0, muted:false, caddie:0, season:{idx:0, played:0, year:1, wins:0, cash:0}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
+function defaultSave(){ return {cash:0, muted:false, season:{idx:0, played:0, year:1, wins:0, cash:0}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
 function loadSave(){
   const d=defaultSave();
   try{
@@ -1508,7 +1504,6 @@ function showHub(keepScroll){
   sheet.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>playEvent(+b.dataset.play));
   sheet.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUpgrade(b.dataset.up));
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));
-  sheet.querySelectorAll('[data-caddie]').forEach(b=>b.onclick=()=>buyCaddie(+b.dataset.caddie));
   sheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>buyColor(b.dataset.color));
   sheet.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.g.split(':'); save.golfer[k]=k==='skin'?+v:v; persist(); Sound.tick(); showHub(true); });
   const gn=$('#gname'); if(gn) gn.oninput=()=>{ save.golfer.name=gn.value.slice(0,16); persist(); };
@@ -1542,7 +1537,6 @@ function eventsHTML(){
       <li>Your club is picked for you. Tap another club or press 1 to 4 to switch.</li>
       <li>Arrows on the green point downhill. Putts break that way.</li>
       <li>Wind pushes the ball in the air. Water and out of bounds cost a stroke.</li>
-      <li>Hire a caddie in the pro shop to see exactly where shots will land.</li>
       <li>Seasons change every 3 events. Spring plays soft, summer runs fast, fall gets gusty, and winter greens are slick.</li>
       <li>Win an event outright to unlock the next one. Every event can be replayed.</li>
     </ul></details>
@@ -1571,18 +1565,12 @@ function shopHTML(){
     return `<div class="item"><div class="item-main"><span class="item-name">${b.name}</span><span class="item-desc">${b.desc}</span></div>${btn}</div>`; }).join('');
   const colors=COLORS.map(c=>{ const own=save.colorsOwned.includes(c.id), on=save.color===c.id, afford=save.cash>=c.price;
     return `<button class="swatch" type="button" data-color="${c.id}" aria-pressed="${on}" ${own||afford?'':'disabled'}><span class="dot" style="background:radial-gradient(circle at 35% 35%,${c.c1},${c.c2})"></span>${c.name}<small>${on?'Using':own?'Owned':money(c.price)}</small></button>`; }).join('');
-  const cad=save.caddie||0;
-  const caddies=CADDIES.map(c=>{ const own=cad>=c.lvl, can=cad===c.lvl-1, afford=save.cash>=c.price;
-    const btn = own ? `<button class="btn dark sm" type="button" disabled>Hired</button>` : can ? `<button class="btn ${afford?'primary':'ghost'} sm" type="button" data-caddie="${c.lvl}" ${afford?'':'disabled'}>${money(c.price)}</button>` : `<button class="btn ghost sm" type="button" disabled>Locked</button>`;
-    return `<div class="item"><div class="item-main"><span class="item-name">${c.name}</span><span class="item-desc">${c.desc}</span></div>${btn}</div>`; }).join('');
   return `<h3 class="sec">Clubs</h3><div>${clubs}</div>
-    <h3 class="sec">Caddie</h3><div>${caddies}</div>
     <h3 class="sec">Balls</h3><div>${balls}</div>
     <h3 class="sec">Ball colors</h3><div class="swatches">${colors}</div>`;
 }
 function buyUpgrade(id){ const t=save.gear[id]||0, price=UPGRADES[id].prices[t]; if(t>=4||save.cash<price) return; save.cash-=price; save.gear[id]=t+1; persist(); Sound.coin(); toast(`${TIERS[t+1]} ${CLUBS.find(c=>c.id===id).name} in the bag`); showHub(true); }
 function buyBall(id){ const b=BALLS.find(x=>x.id===id); if(!save.ballsOwned.includes(id)){ if(save.cash<b.price) return; save.cash-=b.price; save.ballsOwned.push(id); Sound.coin(); toast(`Bought ${b.name}`); } else Sound.tick(); save.ball=id; persist(); showHub(true); }
-function buyCaddie(l){ const c=CADDIES[l-1]; if(!c || (save.caddie||0)!==l-1 || save.cash<c.price) return; save.cash-=c.price; save.caddie=l; persist(); Sound.coin(); toast(`${c.name} hired`); showHub(true); }
 function buyColor(id){ const c=COLORS.find(x=>x.id===id); if(!save.colorsOwned.includes(id)){ if(save.cash<c.price) return; save.cash-=c.price; save.colorsOwned.push(id); Sound.coin(); } else Sound.tick(); save.color=id; persist(); showHub(true); }
 
 function playEvent(i){
@@ -1833,24 +1821,9 @@ function aimLabel(text,x,y,z){
   ctx.font=`700 ${16/z}px "Barlow Condensed","Arial Narrow",sans-serif`; ctx.textAlign='center'; ctx.textBaseline='bottom';
   ctx.lineWidth=4/z; ctx.strokeStyle='rgba(0,0,0,.55)'; ctx.strokeText(text,x,y); ctx.fillStyle='#fff'; ctx.fillText(text,x,y);
 }
-// mirrors stepRoll (minus trees and lip-outs) so the Veteran Caddie can read the break
-function simRoll(x,y,vx,vy){
-  const pt=eff(3), pts=[[x,y]], h=1/240; let holed=false;
-  for(let i=0;i<2400;i++){
-    const t=terrainAt(x,y); if(t===OOB||t===WATER) break;
-    if(t===GREEN){ const sv=slopeAtS(hole.slope,x,y); vx+=sv.ax*h; vy+=sv.ay*h; }
-    let s=Math.hypot(vx,vy); const dx=hole.cup.x-x, dy=hole.cup.y-y, d=Math.hypot(dx,dy);
-    if(d<CUP_R){ const b=s>1?Math.abs(vx*dy-vy*dx)/s:0; if(s<pt.capture*Math.max(0,1-(b/CUP_R)**2) || s<12){ holed=true; x=hole.cup.x; y=hole.cup.y; break; } }
-    if(d<CUP_R+2 && d>0.5 && s<45){ vx+=dx/d*120*h; vy+=dy/d*120*h; s=Math.hypot(vx,vy); }
-    const ns=Math.max(0,s-(fricOf(t)+0.3*s)*h), f=s>0?ns/s:0; vx*=f; vy*=f; x+=vx*h; y+=vy*h;
-    if(i%6===0) pts.push([x,y]);
-    if(ns<4) break;
-  }
-  pts.push([x,y]); return {pts,holed,x,y};
-}
 function drawAim(z){
   const a=aimInfo(); if(!a) return;
-  const e=eff(clubIdx), lie=terrainAt(ball.x,ball.y), lf=lieFactor(e,lie), p=a.p, pc=Math.min(p,1), cad=save.caddie||0, over=p>1;
+  const e=eff(clubIdx), lie=terrainAt(ball.x,ball.y), lf=lieFactor(e,lie), p=a.p, pc=Math.min(p,1), over=p>1;
   const col = over ? `hsl(${3+9*Math.sin(time*16)},90%,56%)` : `hsl(${130-90*p},78%,52%)`;
   const bx=ball.x-a.dx*a.L*BAND/z, by=ball.y-a.dy*a.L*BAND/z;
   ctx.lineCap='round';
@@ -1863,30 +1836,13 @@ function drawAim(z){
   aimLabel(`${Math.round(p*100)}%${over?' OVERSWING':''}`, bx-a.dx*24/z, by-a.dy*24/z+8/z, z);
   ctx.strokeStyle='rgba(255,255,255,.92)'; ctx.lineWidth=2.4/z;
   if(e.putt){
-    const v=e.v*p*lf, fr=fricOf(lie);
-    if(cad>=2){
-      const sim=simRoll(ball.x,ball.y,a.dx*v,a.dy*v);
-      ctx.setLineDash([7/z,6/z]); ctx.beginPath(); sim.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.stroke(); ctx.setLineDash([]);
-      ctx.beginPath(); ctx.arc(sim.x,sim.y,5/z,0,7); ctx.stroke();
-      aimLabel(sim.holed?'In the hole':`${Math.round(Math.hypot(sim.x-ball.x,sim.y-ball.y)*YPP*3)} ft`, sim.x, sim.y-10/z, z);
-    } else {
-      const roll=rollDist(v,fr), frac=cad>=1?1:0.45, ex=ball.x+a.dx*roll*frac, ey=ball.y+a.dy*roll*frac, ft=roll*YPP*3;
-      ctx.setLineDash([7/z,6/z]); ctx.beginPath(); ctx.moveTo(ball.x,ball.y); ctx.lineTo(ex,ey); ctx.stroke(); ctx.setLineDash([]);
-      if(cad>=1){ ctx.beginPath(); ctx.arc(ex,ey,5/z,0,7); ctx.stroke(); }
-      aimLabel(cad>=1?`${Math.round(ft)} ft`:`~${Math.max(5,Math.round(ft/5)*5)} ft`, ex, ey-10/z, z);
-    }
+    const v=e.v*p*lf, roll=rollDist(v,fricOf(lie)), ex=ball.x+a.dx*roll*0.45, ey=ball.y+a.dy*roll*0.45, ft=roll*YPP*3;
+    ctx.setLineDash([7/z,6/z]); ctx.beginPath(); ctx.moveTo(ball.x,ball.y); ctx.lineTo(ex,ey); ctx.stroke(); ctx.setLineDash([]);
+    aimLabel(`~${Math.max(5,Math.round(ft/5)*5)} ft`, ex, ey-10/z, z);
     return;
   }
   const hh=e.h*(0.5+0.5*pc);
-  if(cad>=1){
-    const carry=p*e.carry*lf, T=e.T*(0.45+0.55*pc), v=carry/T, wax=wind.ax*e.wind, way=wind.ay*e.wind;
-    ctx.fillStyle='rgba(255,255,255,.92)';
-    for(let i=1;i<=24;i++){ const u=i/25, t=T*u, x=ball.x+a.dx*v*t+0.5*wax*t*t, y=ball.y+a.dy*v*t+0.5*way*t*t-4*hh*u*(1-u)*0.9; ctx.beginPath(); ctx.arc(x,y,2.6/z,0,7); ctx.fill(); }
-    const lx=ball.x+a.dx*carry+0.5*wax*T*T, ly=ball.y+a.dy*carry+0.5*way*T*T;
-    const sd=(TER[lie]?TER[lie].spread:1)*e.spread*(0.6+pc*0.6), lat=Math.max(10/z, carry*Math.tan(sd*Math.PI/180)+(over?carry*(0.05+0.15*(p-1)/0.1)*e.hook:0)), along=Math.max(14,10/z);
-    ctx.strokeStyle='rgba(255,255,255,.95)'; ctx.lineWidth=2.4/z; ctx.beginPath(); ctx.ellipse(lx,ly,along,lat,Math.atan2(a.dy,a.dx),0,7); ctx.stroke();
-    aimLabel(`${Math.round(carry*YPP)} yds`, lx, ly-Math.max(along,lat)-4/z, z);
-  } else {
+  {
     const full=p*e.carry, n=10, frac=0.42;
     for(let i=1;i<=n;i++){ const u=frac*i/n, x=ball.x+a.dx*full*u, y=ball.y+a.dy*full*u-4*hh*u*(1-u)*0.9; ctx.fillStyle=`rgba(255,255,255,${(0.92*(1-i/(n+2))).toFixed(3)})`; ctx.beginPath(); ctx.arc(x,y,2.6/z,0,7); ctx.fill(); }
     const lx=ball.x+a.dx*full*frac, ly=ball.y+a.dy*full*frac-4*hh*frac*(1-frac)*0.9;
@@ -1902,6 +1858,7 @@ window.addEventListener('resize',()=>{ resize(); if(hole && state==='menu') snap
 resize();
 EV=EVENTS[0]; HOLES=EV.holes; field=[{name:'You',you:true}]; playerScores=[];
 startHole(0);
+if(save.caddie){ const refund=save.caddie>=2?115000:25000; save.cash+=refund; delete save.caddie; persist(); setTimeout(()=>toast(`Caddies are gone. ${money(refund)} refunded to your bank.`,3600),600); }
 Sound.setSeason(season().id);
 renderSound();
 showHub();

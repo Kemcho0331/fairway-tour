@@ -18,7 +18,7 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Eight tournaments: Willow Creek Open, Bluebonnet Classic, Piney Woods Classic, Gulf Coast Invitational, Hill Country Open, Big Bend Desert Classic, Texas Masters, Lone Star Championship
 - Win an event outright to unlock the next one. Every unlocked event can be replayed.
 - Entry fees and steep, tour-style payouts
-- Pro shop with four club tiers, a Caddie and Veteran Caddie, special balls, and ball colors
+- Pro shop with four club tiers, special balls, and ball colors
 - Sloped greens with break arrows, plus tiered greens with steps between levels
 - 15 hole archetypes based on classic golf design: island green, Redan, Biarritz, Eden, bunker ring, long par 3, dogleg, Road hole, Cape, split fairway, Leven, bottle neck, drivable par 4, peninsula green, Hell bunker, reachable par 5, Sahara waste carry, and more
 - Big Bend plays as a true desert course: rocky scrub off the fairway, mesquite, sotol, ocotillo, and boulders

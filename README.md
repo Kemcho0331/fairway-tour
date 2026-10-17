@@ -38,6 +38,10 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Fairway, rough, sand, green, water, trees, and wind
 - A different roster of rivals on every tier, with a live leaderboard; the Pro Tour has one clear best player at the top
 - Win Pro Tour Player of the Year to become Texas Champion, with a career recap and an invitation to the National Tour; after that, the Pro field gets sharper every year
+- The National Tour: you plus 15 state champions (home states on the leaderboard), 9-hole events across the country, three national majors, and a National Championship
+- Top 10 keep their National cards; 11th or worse goes back to Texas, and new state champions replace the bottom 6 every year
+- Texas Pro Player of the Year winners move up to the National Tour, and old nemeses can come back as state champions with their rivalry intact
+- A 1,000-point Hall of Fame earned only on the National Tour, with an induction ceremony, a wall of legends, and rare rival inductees
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
 - A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
 - Generated music and sound effects
@@ -46,7 +50,6 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 
 ## Roadmap
 
-- National Tour: you plus 15 state champions, relegation for the bottom 6, and a 1,000-point Hall of Fame
 - Seven National course looks: Rockies, Pacific cliffs, Arizona desert, Florida, Carolina sandhills, Midwest parkland, Northeast links
 - National sponsors
 - Two-round majors with a cut on the Pro and National tours

@@ -269,6 +269,20 @@ details.how summary{cursor:pointer;font:600 12px/1.2 var(--body);letter-spacing:
 .invite .kicker{color:#8a6a12}
 .invite b{font:800 italic 26px/1 var(--display);text-transform:uppercase}
 .invite span:last-child{font:500 13.5px/1.45 var(--body)}
+.st{font:700 9.5px/1 var(--body);letter-spacing:.06em;color:var(--muted);border:1px solid var(--rule);border-radius:3px;padding:2px 4px;margin-left:4px;vertical-align:1px}
+.lb tr.dropline td{border-top-color:var(--under)}
+.hof{display:flex;flex-direction:column;gap:7px}
+.hof-top{display:flex;align-items:baseline;gap:8px}
+.hof-top b{font:800 italic 30px/1 var(--display)}
+.hof-top span{font:500 13px/1.2 var(--body);color:var(--muted)}
+.hofbar{height:10px;border-radius:5px;background:var(--rule);overflow:hidden}
+.hofbar i{display:block;height:100%;background:linear-gradient(90deg,#8a6a12,var(--flag))}
+.hof small{font:500 11.5px/1.4 var(--body);color:var(--muted)}
+.hofwall{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.hofp{border:1px solid #c9a227;background:#fbf6e4;border-radius:6px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
+.hofp b{font:700 15px/1.05 var(--display);text-transform:uppercase}
+.hofp small{font:500 11px/1.2 var(--body);color:var(--muted)}
+.hofp.you{background:var(--flag);border-color:var(--ink)}
 @media (prefers-reduced-motion:reduce){
   .toast,.banner,.val svg{transition:none}
 }
@@ -843,8 +857,8 @@ const WILLOW_ROUTES=[[[500,1880],[505,300]],[[500,1090],[520,310]],[[260,2290],[
 WILLOW_HOLES.forEach((h,i)=>{ h.diff=0.15; h.treeMul=1; h.arch='handmade'; h.surround='forest'; h.route=WILLOW_ROUTES[i]; h.slope=makeSlope(mulberry32(h.seed+999), h.green, 0.15); postHole(h, mulberry32(h.seed)); });
 
 /* ---------- The tour: four tiers, eight events each, a Tour Championship and a Q-School ---------- */
-const PTS=[500,300,190,135,110,100,90,80,70,60,50,40];
-const SHARES=[1,.58,.38,.27,.2,.15,.11,.08,.06,.05,.04,.035];
+const PTS=[500,300,190,135,110,100,90,80,70,60,50,40,35,30,25,20];
+const SHARES=[1,.58,.38,.27,.2,.15,.11,.08,.06,.05,.04,.035,.03,.025,.02,.015];
 const SETTINGS = {
   parkland:{surround:'forest', wind:14, pool:{3:['eden','long3','ringed','redan'],4:['dogleg','classic','bottle','drivable','road'],5:['long','classic','reachable']}},
   azalea:  {surround:'azalea', wind:14, pool:{3:['redan','eden','biarritz'],4:['dogleg','cape','drivable','road','leven','bottle'],5:['reachable','long']}},
@@ -885,6 +899,16 @@ const TOUR = [
     events:[['dallas','Dallas Classic','parkland',6],['masters','Texas Masters','azalea',9,{major:true,tag:'A major. Azaleas, slick greens, and the toughest field of the spring.'}],['bayoucity','Bayou City Classic','bayou',7],['galvbay','Galveston Bay Championship','coast',7,{sig:'island'}],
             ['austin','Austin Open','hill',7],['transpecos','Trans-Pecos Open','desert',7],['panhandle','Panhandle Open','plains',7],['lonestar','Lone Star Championship','parkland',9,{major:true,tag:'A major. The biggest stage in Texas golf.'}]],
     champ:['prochamp','Pro Tour Championship','azalea',9,120000] },
+  { name:'National Tour', national:true, boost:0, diff:[.75,1], fee:[15000,30000], win:[80000,150000], q:0, roster:[],
+    events:[['natsand','Sandhills Classic','pines',9,{region:'Pinehurst, North Carolina',tag:'Carolina sandhills. Pine straw, wiregrass, and greens that shed the ball.'}],
+            ['natamerican','American Championship','parkland',9,{major:true,region:'Columbus, Ohio',tag:'A major. Tree-lined Midwest parkland and the deepest rough of the year.'}],
+            ['natrocky','Rocky Mountain Open','hill',9,{region:'Castle Rock, Colorado',tag:'Mountain golf. Big drops, long carries, and thin air.'}],
+            ['natopen','The National Open','coast',9,{major:true,region:'Monterey, California',tag:'A major. Cliffside holes over the Pacific.'}],
+            ['natlakes','Great Lakes Classic','parkland',9,{region:'Chicago, Illinois',tag:'Old Midwest parkland. Big oaks and thick rough.'}],
+            ['natatlantic','Atlantic Championship','links',9,{major:true,region:'Southampton, New York',tag:'A major. Fescue, dunes, and wind off the Atlantic.'}],
+            ['natsaguaro','Saguaro Desert Classic','desert',9,{region:'Scottsdale, Arizona',tag:'Desert resort golf. Green ribbons through cactus and sand.'}],
+            ['natglades','Everglades Invitational','bayou',9,{region:'Naples, Florida',tag:'Florida golf. Water on nearly every hole.'}]],
+    champ:['natchamp','National Championship','azalea',9,300000] },
 ];
 function idSeed(id){ let h=2166136261; for(const ch of id){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0)%900000+1000; }
 function makeEvent(t, k, def, kind){
@@ -896,7 +920,7 @@ function makeEvent(t, k, def, kind){
   const rosterT=kind==='q'?Math.min(3,t+1):t, roster=TOUR[rosterT].roster;
   const e={id, name, tier:t, k, kind, set, pars, par:pars.reduce((a,b)=>a+b,0), diff, boost:TOUR[rosterT].boost+(kind==='q'?0.06:0),
     windMax:Math.round(S.wind*(0.85+t*0.1)), fee, major:!!o.major, mult:(o.major||kind==='champ')?2:1,
-    tagline:o.tag||TAGS[set]||'', roster, payouts:SHARES.map(sh=>Math.round(win*sh/50)*50)};
+    tagline:o.tag||TAGS[set]||'', region:o.region||'', roster, payouts:SHARES.map(sh=>Math.round(win*sh/50)*50)};
   let cache=null;
   Object.defineProperty(e,'holes',{get(){
     if(cache) return cache;
@@ -943,7 +967,7 @@ const PERSONAS = {
 const SETTLE_WINS = 5;
 // the Pro Tour's best can climb past everyone else, and the field sharpens every year after you become Texas Champion
 const fieldHeat = t => t===3 ? (save.proHeat||0) : 0;
-const skillCap = t => t===3 ? 1.03+fieldHeat(t) : 0.97;
+const skillCap = t => t===3 ? 1.03+fieldHeat(t) : t===4 ? 1.15 : 0.97;
 const HEAT_STEP = 0.015, HEAT_MAX = 0.09;
 const nem = () => save.nem || null;
 const firstName = n => n.split(' ')[0];
@@ -951,10 +975,10 @@ function personaFor(name){ return ['bomber','grinder','showman'][idSeed(name)%3]
 // the nemesis plays just ahead of your recent form, never below the middle of the tier
 function nemSkill(t){
   const f=save.form||[], base=f.length ? f.reduce((a,b)=>a+b,0)/f.length : 0.45, T=TOUR[t];
-  return clamp(base+0.05, T.roster[3][1]+T.boost+fieldHeat(t), skillCap(t));
+  const ros=t===NAT?natRoster():T.roster; return clamp(base+0.05, ros[3][1]+T.boost+fieldHeat(t), skillCap(t));
 }
 // a tier's roster, plus your nemesis if they followed you up from another tier
-function tierRoster(t){ const ros=TOUR[t].roster.slice(), n=nem(); if(n && !ros.some(r=>r[0]===n.name)) ros.push([n.name, null]); return ros; }
+function tierRoster(t){ if(t===NAT) return natRoster(); let ros=TOUR[t].roster.slice(); if(t===3 && save.nat) ros=ros.filter(r=>!onNational(r[0])); const n=nem(); if(n && !onNational(n.name) && !ros.some(r=>r[0]===n.name)) ros.push([n.name, null]); return ros; }
 function nemQuote(kind){ const n=nem(); if(!n) return ''; const L=PERSONAS[n.persona][kind], c=career(); return L[(c.year*7+c.k+(n.w+n.l)*3)%L.length]; }
 function addTrophy(key, label, kind){ const t=save.trophies[key]||(save.trophies[key]={label, kind, count:0, years:[]}); t.count++; t.years.push(career().year); }
 // called after every finished event; returns HTML notes for the results sheet
@@ -1000,6 +1024,8 @@ const TROPHY_LIST = [
   ['major:masters','Texas Masters','#c9a227'], ['major:lonestar','Lone Star Championship','#c9a227'],
   ['promo:1','Mini-Tour card','#2f7d4a'], ['promo:2','Challenger Tour card','#2f7d4a'], ['promo:3','Pro Tour card','#2f7d4a'],
   ['qschool','Q-School','#b8763c'], ['poy','Player of the Year','#c9a227'],
+  ['promo:4','National Tour card','#2f7d4a'], ['major:natamerican','American Championship','#c9a227'], ['major:natopen','The National Open','#c9a227'], ['major:natatlantic','Atlantic Championship','#c9a227'],
+  ['champ:4','National Championship','#c9a227'], ['npoy','National Player of the Year','#c9a227'], ['hof','Hall of Fame','#5c4708'],
 ];
 function careerTabHTML(){
   const s=save.stats, c=career(), n=nem();
@@ -1018,6 +1044,7 @@ function careerTabHTML(){
     ${facts}
     <h3 class="sec">Nemesis</h3>${nemBlock}${past?`<div>${past}</div>`:''}
     <h3 class="sec">Trophy case</h3><div class="trophies">${TROPHY_LIST.map(([k,l,col])=>tro(k,l,col)).join('')}${rivalT}</div>
+    <h3 class="sec">Hall of Fame</h3>${hofHTML()}
     <h3 class="sec">Sponsor gear</h3><div>${sponsorGearHTML()}</div>`;
 }
 let EV=null, HOLES=[];
@@ -1214,9 +1241,9 @@ function showPreTee(keepScroll){
   const e=currentEvent(), sps=tierSponsors(career().tier);
   openSheet('pretee',`
     <div class="sheet-head"><span class="kicker">Before you tee off</span><span class="title">${e.name}</span>
-      <span class="head-sub">${sps.length>1?'Pick one goal for each sponsor':'Pick one goal to chase'}, then check your bag.</span></div>
+      <span class="head-sub">${sps.length>1?'Pick one goal for each sponsor, then check your bag.':sps.length?'Pick one goal to chase, then check your bag.':'Check your bag.'}</span></div>
     <div class="sheet-body">
-      <h3 class="sec">${sps.length>1?'Sponsors':'Sponsor'}</h3>${sps.map(s=>sponsorCard(s,e)).join('')}
+      <h3 class="sec">${sps.length>1?'Sponsors':'Sponsor'}</h3>${sps.length?sps.map(s=>sponsorCard(s,e)).join(''):'<div class="field">National sponsors are on the way.</div>'}
       <h3 class="sec">Your bag</h3>${bagHTML()}
       <div class="row"><button class="btn primary" id="goBtn" type="button">Tee off${e.fee?' · '+money(e.fee):''}</button><button class="btn ghost" id="backHub" type="button">Back</button></div>
     </div>`, '#goBtn', keepScroll);
@@ -1259,6 +1286,7 @@ function sponsorsAfterEvent(res){
   return html;
 }
 function sponsorSummary(){
+  if(!tierSponsors(career().tier).length) return '<div class="field">National sponsors are on the way.</div>';
   return tierSponsors(career().tier).map(s=>{ const st=spState(s.id); return `<div class="spline" style="--spc:${s.color}"><b>${s.name}</b><span>${st.set>=4?'Contract complete':`${RANKS[st.set]} set · ${st.done.length} of ${s.sets[st.set].goals.length} goals`}</span>${spBar(s)}</div>`; }).join('');
 }
 // every sponsor's gear, for the Career tab
@@ -1267,6 +1295,119 @@ function sponsorGearHTML(){
   return SPONSORS.map(s=>{ const st=spState(s.id), note=s.tier>c.tier?`Signs you on the ${TOUR[s.tier].name}`:s.tier<c.tier&&st.set<4?'Contract ended when you moved up':s.tier===c.tier?'Current sponsor':'Contract complete';
     return `<div class="gear"><div class="gear-top" style="--spc:${s.color}"><b>${s.name}</b><small>${TOUR[s.tier].name} · ${note}</small></div>
       <div class="gear-items">${s.sets.map((x,i)=>{ const got=hasItem(x.item); return `<div class="gi ${got?'':'off'}">${rankChip(i)}<span>${got?'✓ ':''}${itemLabel(x.item)}</span></div>`; }).join('')}</div></div>`; }).join('');
+}
+
+/* ---------- National Tour ---------- */
+const NAT = 4;
+const STATES = [['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],
+  ['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],
+  ['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],
+  ['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],
+  ['SD','South Dakota'],['TN','Tennessee'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+const NAT_FIRST = ['Jake','Carter','Wyatt','Logan','Grant','Miles','Reese','Owen','Brooks','Hayes','Dawson','Emmett','Rhett','Silas','Graham','Tucker','Parker','Declan','Bennett','Jonah',
+  'Mason','Rory','Kai','Mateo','Theo','Ezra','Callum','Nico','Luca','Dante','Soren','Isaac','Andre','Marcus','Tariq','Hiro','Kenji','Min-jun','Ravi','Arjun','Felix','Rowan','Quinn','Beckett','Fletcher'];
+const NAT_LAST = ['Morrow','Callaway','Prescott','Whitmore','Ashby','Danforth','Kessler','Lindgren','Hollins','Ashworth','Brennan','Calloway','Mercer','Stafford','Thibodeaux','Vance','Kowalczyk','Okafor',
+  'Nakamura','Delgado','Fairbanks','Hargrove','Ellison','Pruett','Sinclair','Waverly','Holloway','Draper','Easton','Garrity','Langley','McCready','Abernathy','Rhodes','Sorensen','Tanaka','Park',
+  'Iverson','Quarles','Redding','Shepherd','Underwood','Yates','Castellano','Beaumont','Crowley','Dunmore','Fontaine','Galloway','Hennessy'];
+const NAT_SKILL = [0.93, 1.1];
+const HOF_TARGET = 1000, HOF_PTS = {win:5, major:15, champ:10, poy:25, card:3};
+const LEGENDS = [{name:'Walt Harmon', st:'OH', cls:"Class of '71"}, {name:'Buck Delacroix', st:'LA', cls:"Class of '79"}, {name:'Arnie Coates', st:'PA', cls:"Class of '88"}, {name:'Sam Whitlock', st:'NC', cls:"Class of '96"}, {name:'Danny Okimura', st:'HI', cls:"Class of '09"}];
+const stateName = st => (STATES.find(s=>s[0]===st)||[st,st==='TX'?'Texas':st])[1];
+function natKnownNames(){ const n=new Set(); TOUR.slice(0,4).forEach(T=>T.roster.forEach(r=>n.add(r[0]))); (save.nat?save.nat.field:[]).forEach(p=>n.add(p.name)); (save.hofList||[]).forEach(p=>n.add(p.name)); LEGENDS.forEach(p=>n.add(p.name)); return n; }
+function natDraw(){ return NAT_SKILL[0]+Math.random()*(NAT_SKILL[1]-NAT_SKILL[0]); }
+// a brand-new state champion from a state not already in the field
+function newStateChamp(){
+  const used=new Set(save.nat.field.map(p=>p.st)), open=STATES.filter(s=>!used.has(s[0])), st=(open.length?open:STATES)[(Math.random()*(open.length||STATES.length))|0][0], known=natKnownNames();
+  let name; const lasts=new Set(save.nat.field.map(p=>p.name.split(" ").slice(1).join(" ")));
+  for(let i=0;i<200;i++){ const ln=NAT_LAST[(Math.random()*NAT_LAST.length)|0]; name=NAT_FIRST[(Math.random()*NAT_FIRST.length)|0]+" "+ln; if(!known.has(name) && (i>150 || !lasts.has(ln))) break; }
+  return {name, st, skill:natDraw()};
+}
+// Texas's champion while you are away: Pro regulars, plus old nemeses who never stopped grinding
+function texasChamp(){
+  const on=new Set(save.nat.field.map(p=>p.name)), cur=nem(), pool=[];
+  (save.nemDormant||[]).forEach(d=>{ if(!on.has(d.name) && d.st==='TX') pool.push([d.name,4]); });
+  (save.nemPast||[]).forEach(p=>{ if(!on.has(p.name)) pool.push([p.name,3]); });
+  TOUR[3].roster.forEach(([n])=>{ if(!on.has(n) && !(cur&&cur.name===n)) pool.push([n,1]); });
+  const seen=new Set(), list=pool.filter(([n])=>!seen.has(n)&&seen.add(n));
+  if(!list.length) return null;
+  let r=Math.random()*list.reduce((a,x)=>a+x[1],0), pick=list[0][0]; for(const [n,w] of list){ r-=w; if(r<=0){ pick=n; break; } }
+  const pro=TOUR[3].roster.find(x=>x[0]===pick);
+  return {name:pick, st:'TX', skill:Math.max(natDraw(), pro?Math.min(1.08,pro[1]+TOUR[3].boost+0.02):0.98)};
+}
+function natInit(){
+  if(save.nat) return save.nat;
+  save.nat={field:[], hof:{}};
+  for(let i=0;i<15;i++) save.nat.field.push(newStateChamp());
+  return save.nat;
+}
+const onNational = name => !!(save.nat && save.nat.field.some(p=>p.name===name));
+function stateOf(name){ const p=save.nat&&save.nat.field.find(x=>x.name===name); return p?p.st:null; }
+function natRoster(){ return natInit().field.slice().sort((a,b)=>b.skill-a.skill).map(p=>[p.name,p.skill]); }
+const stTag = name => { if(career().tier!==NAT && !(EV&&EV.tier===NAT)) return ''; const st=stateOf(name); return st?` <small class="st" title="${stateName(st)}">${st}</small>`:''; };
+// someone joins the National field; returning nemeses pick their feud back up
+function natJoin(p, notes){
+  save.nat.field.push(p);
+  const di=(save.nemDormant||[]).findIndex(d=>d.name===p.name);
+  if(di>=0){ const d=save.nemDormant[di];
+    if(!nem()){ save.nemDormant.splice(di,1); save.nem={name:d.name, persona:d.persona, w:d.w, l:d.l, year:d.year};
+      notes.push(`<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(p.name)}</b> is back as ${stateName(p.st)}'s champion, and still remembers you. Head to head ${d.w}-${d.l}.</div>`); return; } }
+  if((save.nemPast||[]).some(x=>x.name===p.name)) notes.push(`<div class="career">Old rival <b>${esc(p.name)}</b> made it to the National Tour as ${stateName(p.st)}'s champion.</div>`);
+}
+// any rival leaving the National field who is your nemesis waits in the wings instead of vanishing
+function natLeave(p){
+  save.nat.field=save.nat.field.filter(x=>x.name!==p.name);
+  const n=nem(); if(n && n.name===p.name){ save.nemDormant=(save.nemDormant||[]).concat([{...n, st:p.st}]); save.nem=null; }
+}
+function freshEntrant(){
+  // a dormant nemesis from another state sometimes wins their state again
+  const back=(save.nemDormant||[]).filter(d=>d.st && d.st!=='TX' && !onNational(d.name));
+  if(back.length && Math.random()<0.25){ const d=back[(Math.random()*back.length)|0]; return {name:d.name, st:d.st, skill:natDraw()}; }
+  return newStateChamp();
+}
+function addHof(name, pts){ if(name===ME){ save.hofPts=(save.hofPts||0)+pts; return; } const h=save.nat.hof; h[name]=(h[name]||0)+pts; }
+// National season over: points for the Hall, inductions, relegation churn, and new state champions
+function natYearEnd(rows){
+  const c=career(), notes=[];
+  rows.forEach((r,i)=>{ if(r.you) return; if(i===0) addHof(r.n, HOF_PTS.poy); if(i<10) addHof(r.n, HOF_PTS.card); });
+  // rivals who reach the Hall retire
+  for(const p of save.nat.field.slice()){ if((save.nat.hof[p.name]||0)>=HOF_TARGET){ save.hofList=(save.hofList||[]).concat([{name:p.name, st:p.st, year:c.year}]); natLeave(p);
+    notes.push(`<div class="season" style="--sc:#5c4708"><div class="season-top"><span>Hall of Fame</span><span>Year ${c.year}</span></div><span class="season-name">${esc(p.name)} is inducted</span><span class="season-blurb">${stateName(p.st)}'s champion retires into the Hall of Fame. Very few ever make it.</span></div>`); } }
+  // bottom six are replaced
+  rows.slice(10).forEach(r=>{ if(r.you) return; const p=save.nat.field.find(x=>x.name===r.n); if(p) natLeave(p); });
+  save.nat.field.forEach(p=>{ p.skill=clamp(p.skill+(Math.random()*2-1)*0.02, NAT_SKILL[0]-0.03, NAT_SKILL[1]+0.04); });
+  const tx=texasChamp(); if(tx && save.nat.field.length<15) natJoin(tx, notes);
+  while(save.nat.field.length<15) natJoin(freshEntrant(), notes);
+  return notes.join('');
+}
+// you won Texas again: the National field moved on while you were away
+function natReturn(notes){
+  natInit();
+  const out=save.nat.field.slice().sort((a,b)=>a.skill-b.skill).slice(0,3); out.forEach(natLeave);
+  const tx=texasChamp(); if(tx) natJoin(tx, notes);
+  while(save.nat.field.length<15) natJoin(freshEntrant(), notes);
+}
+// a Texas rival who wins Texas Player of the Year goes to the National Tour
+function texasWinnerUp(name){
+  if(!save.nat || onNational(name)) return '';
+  const low=save.nat.field.slice().sort((a,b)=>a.skill-b.skill)[0]; if(low) natLeave(low);
+  const pro=TOUR[3].roster.find(x=>x[0]===name), notes=[];
+  natJoin({name, st:'TX', skill:Math.max(natDraw(), pro?Math.min(1.08,pro[1]+TOUR[3].boost+0.02):0.98)}, notes);
+  return `<div class="career">${esc(name)} won Texas Player of the Year and moves up to the National Tour.</div>`+notes.join('');
+}
+function moveToNational(){
+  const c=career(), n=nem();
+  if(n && !onNational(n.name)){ save.nemDormant=(save.nemDormant||[]).concat([{...n, st:'TX'}]); save.nem=null; }
+  c.tier=NAT; newYear(); save.stats.promotions=(save.stats.promotions||0)+1; addTrophy('promo:4','National Tour card','promo');
+  return n && !onNational(n.name) ? `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(n.name)}</b> stays behind in Texas. You have not seen the last of ${firstName(n.name)}.</div>` : '';
+}
+function hofHTML(){
+  const pts=save.hofPts||0, pct=Math.min(100,pts/HOF_TARGET*100), inn=save.hofIn;
+  const meter = save.nat
+    ? `<div class="hof"><div class="hof-top"><b>${pts.toLocaleString('en-US')}</b><span>of ${HOF_TARGET.toLocaleString('en-US')} points${inn?` · inducted in year ${inn}`:''}</span></div><div class="hofbar"><i style="width:${pct}%"></i></div>
+        <small>National Tour only. Win ${HOF_PTS.win} · Major ${HOF_PTS.major} · National Championship ${HOF_PTS.champ} · National Player of the Year ${HOF_PTS.poy} · Keep your card ${HOF_PTS.card}</small></div>`
+    : `<div class="field">Hall of Fame points are only earned on the National Tour. Win Texas Player of the Year to get there.</div>`;
+  const list=LEGENDS.map(l=>({name:l.name, st:l.st, when:l.cls})).concat((save.hofList||[]).map(p=>({name:p.name===ME?playerName():p.name, st:p.st, when:`Year ${p.year}`, you:p.name===ME})));
+  return meter+`<div class="hofwall">${list.map(p=>`<div class="hofp ${p.you?'you':''}"><b>${esc(p.name)}</b><small>${stateName(p.st)} · ${p.when}</small></div>`).join('')}</div>`;
 }
 
 /* ---------- Effective club stats (upgrades + ball) ---------- */
@@ -1947,7 +2088,7 @@ function posOf(st,s){ const pos=1+st.filter(o=>o.tot<s.tot).length; const tied=s
 function boardHTML(){
   const st=standings();
   return `<table class="lb"><thead><tr><th>Pos</th><th>Player</th><th class="r">Thru</th><th class="r">To par</th></tr></thead><tbody>${
-    st.map(s=>`<tr class="${s.you?'you':''} ${s.nem?'nem':''}"><td class="pos">${posOf(st,s).label}</td><td>${esc(s.name)}${s.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${s.thru===HOLES.length?'F':s.thru}</td><td class="num ${s.tot<0?'under':''}">${fmtPar(s.tot)}</td></tr>`).join('')
+    st.map(s=>`<tr class="${s.you?'you':''} ${s.nem?'nem':''}"><td class="pos">${posOf(st,s).label}</td><td>${esc(s.name)}${s.you?'':stTag(s.name)}${s.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${s.thru===HOLES.length?'F':s.thru}</td><td class="num ${s.tot<0?'under':''}">${fmtPar(s.tot)}</td></tr>`).join('')
   }</tbody></table>`;
 }
 
@@ -2024,7 +2165,7 @@ function showHub(keepScroll){
 function careerCard(){
   const c=career(), T=tierDef(), S=season(), rows=tableRows(), me=rows.find(r=>r.you), rank=rows.indexOf(me)+1;
   const dots=Array.from({length:8},(_,k)=>`<i class="${c.played[k]?'on':''}"></i>`).join('')+`<i class="${c.played.champ?'on':''}" style="border-radius:2px"></i>`;
-  const goal=c.tier<3?'Top 2 move up · Top 6 make the Championship':`Finish 1st to be Player of the Year${fieldHeat(3)>0?` · Field level +${Math.round(fieldHeat(3)/HEAT_STEP)}`:''}`;
+  const goal=c.tier===NAT?'Top 6 make the Championship · Top 10 keep their cards':c.tier<3?'Top 2 move up · Top 6 make the Championship':`Finish 1st to be Player of the Year${fieldHeat(3)>0?` · Field level +${Math.round(fieldHeat(3)/HEAT_STEP)}`:''}`;
   return `<div class="season" style="--sc:${S.color}">
     <div class="season-top"><span>${T.name} · Year ${c.year}</span><span>${ordinal(rank)} · ${me.pts} pts</span></div>
     <span class="season-name">${S.name}</span>
@@ -2051,7 +2192,7 @@ function tourHTML(){
       ${nem() && (e.kind!=='champ' || rank<=6) ? `<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(nem().name)}:</b> "${nemQuote('pre')}"</div>`:''}
       <div class="row"><button class="btn primary sm" type="button" data-act="play">Tee off${e.fee?' · '+money(e.fee):''}</button>${c.phase==='qschool'?'<button class="btn ghost sm" type="button" data-act="skipq">Skip, replay the year</button>':''}</div></div>`;
   }
-  const row=(n,ev,res,cur,chipS)=>`<div class="srow ${cur?'next':res?'done':''}"><span class="n">${n}</span><span class="nm"><b>${ev.name}</b><small>${ev.set==='azalea'?'parkland':ev.set} · ${ev.pars.length} holes${ev.major?' · major':''}</small></span>
+  const row=(n,ev,res,cur,chipS)=>`<div class="srow ${cur?'next':res?'done':''}"><span class="n">${n}</span><span class="nm"><b>${ev.name}</b><small>${ev.region||(ev.set==='azalea'?'parkland':ev.set)} · ${ev.pars.length} holes${ev.major?' · major':''}</small></span>
     <span class="res">${res?`${res.label} · ${res.pts} pts`:cur?'<span class="chip-s" style="background:var(--ink)">Next</span>':chipS}</span></div>`;
   const rows=T.events.map((ev,k)=>{ const S=SEASONS[Math.floor(k/2)]; return row(k+1,ev,c.played[k],c.phase==='season'&&c.k===k,`<span class="chip-s" style="background:${S.color}">${S.name}</span>`); }).join('')
     + row('★',T.champEv,c.played.champ,c.phase==='champ','<span class="chip-s" style="background:var(--pine-2)">Top 6</span>')
@@ -2065,17 +2206,18 @@ function tourHTML(){
       <li>Each tier plays 8 events, two per season. Finishes earn standings points, and majors and the Championship count double.</li>
       <li>The top 6 play the Tour Championship. The top 2 after it move up a tier. Miss out and you can try Q-School, where only a win gets you through.</li>
       <li>Short on money? You can still enter. The fee comes out of your winnings.</li>
-      <li>Win Player of the Year on the Pro Tour to become Texas Champion. After that, the Pro field gets sharper every year.</li>
+      <li>Win Player of the Year on the Pro Tour to become Texas Champion and join the National Tour: you plus 15 state champions. Top 10 keep their cards, 11th or worse goes back to Texas.</li>
+      <li>National Tour results earn Hall of Fame points. Reach 1,000 to be inducted.</li>
       <li>Before each event, pick a sponsor goal to chase. Clear every goal in a set to earn that sponsor's gear. Signature clubs swap into your bag in place of your shop club.</li>
     </ul></details>
     <div class="row"><button class="btn ghost sm" id="soundToggle" type="button">${Sound.muted?'Sound off':'Sound on'}</button></div>`;
 }
 function standingsHTML(){
   const c=career(), T=tierDef(), rows=tableRows();
-  const note=c.tier<3?`After the Tour Championship, the top 2 move up to the <strong>${TOUR[c.tier+1].name}</strong>. Top 6 qualify for the Championship.`:'Finish 1st after the Tour Championship to be <strong>Player of the Year</strong>.';
+  const note=c.tier===NAT?'Top 6 play the <strong>National Championship</strong>. Top 10 keep their cards. <strong>11th or worse goes back to Texas</strong>, and new state champions take their places.':c.tier<3?`After the Tour Championship, the top 2 move up to the <strong>${TOUR[c.tier+1].name}</strong>. Top 6 qualify for the Championship.`:'Finish 1st after the Tour Championship to be <strong>Player of the Year</strong>.';
   return `<div class="field">${note}</div>
     <table class="lb"><thead><tr><th>Pos</th><th>Player</th><th class="r">Wins</th><th class="r">Points</th></tr></thead><tbody>${
-      rows.map((r,i)=>`<tr class="${r.you?'you':''} ${r.nem?'nem':''} ${i===2&&c.tier<3?'cutline':''} ${i===6?'cutline':''}"><td class="pos">${i+1}</td><td>${esc(r.name)}${r.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${r.wins}</td><td class="num">${r.pts}</td></tr>`).join('')
+      rows.map((r,i)=>`<tr class="${r.you?'you':''} ${r.nem?'nem':''} ${i===2&&c.tier<3?'cutline':''} ${i===6?'cutline':''} ${i===10&&c.tier===NAT?'cutline dropline':''}"><td class="pos">${i+1}</td><td>${esc(r.name)}${r.you?'':stTag(r.n)}${r.nem?' <span class="nemtag">Nemesis</span>':''}</td><td class="r">${r.wins}</td><td class="num">${r.pts}</td></tr>`).join('')
     }</tbody></table>
     <div class="career">${T.name} · Year ${c.year} · ${Object.keys(c.played).filter(k=>k!=='champ'&&k!=='q').length} of 8 events played</div>`;
 }
@@ -2171,13 +2313,28 @@ function yearEnd(){
     return `<div class="season" style="--sc:#1f6b45"><div class="season-top"><span>Promotion</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">Welcome to the ${to}</span><span class="season-blurb">Bigger purses, tougher courses, and a stronger field start now.</span></div>`;
   }
   if(c.tier===3){
-    const poy=rank===1, first=poy&&!save.texasChamp;
+    const rows=tableRows(), poy=rank===1, first=poy&&!save.texasChamp;
     if(poy){ save.stats.poy=(save.stats.poy||0)+1; addTrophy('poy','Player of the Year','poy'); }
-    if(first){ save.texasChamp={year:c.year}; save.pendingCeremony=true; }
+    if(first){ save.texasChamp={year:c.year}; save.pendingCeremony='texas'; }
     if(save.texasChamp) save.proHeat=Math.min(HEAT_MAX,(save.proHeat||0)+HEAT_STEP);
+    if(poy){ const notes=[]; if(first) natInit(); else natReturn(notes); const nemNote=moveToNational();
+      return (first?`<div class="season" style="--sc:#8a6a12"><div class="season-top"><span>Season over</span><span>Finished 1st</span></div><span class="season-name">Texas Champion</span><span class="season-blurb">Player of the Year on the Pro Tour. Head to the clubhouse. Something is waiting for you.</span></div>`
+        :`<div class="season" style="--sc:#8a6a12"><div class="season-top"><span>Player of the Year</span><span>Finished 1st</span></div><span class="season-name">Back to the National Tour</span><span class="season-blurb">Texas is yours again, and so is your National Tour card.</span></div>`)+nemNote+notes.join(''); }
+    const up=save.nat?texasWinnerUp(rows[0].n):''; newYear();
+    return `<div class="season" style="--sc:#3f6c8a"><div class="season-top"><span>Season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">Year ${career().year} awaits</span><span class="season-blurb">${save.texasChamp?'Win Player of the Year to earn your way back to the National Tour.':'A new Pro Tour season starts in spring.'}</span></div>`+up;
+  }
+  if(c.tier===NAT){
+    const rows=tableRows(), poy=rank===1, keep=rank<=10, st=save.stats;
+    st.natYears=(st.natYears||0)+1;
+    if(poy){ st.npoy=(st.npoy||0)+1; addTrophy('npoy','National Player of the Year','poy'); addHof(ME,HOF_PTS.poy); }
+    if(keep) addHof(ME,HOF_PTS.card);
+    const churn=natYearEnd(rows);
+    if(!keep) c.tier=3;
     newYear();
-    if(first) return `<div class="season" style="--sc:#8a6a12"><div class="season-top"><span>Season over</span><span>Finished 1st</span></div><span class="season-name">Texas Champion</span><span class="season-blurb">Player of the Year on the Pro Tour. Head to the clubhouse. Something is waiting for you.</span></div>`;
-    return `<div class="season" style="--sc:${poy?'#8a6a12':'#3f6c8a'}"><div class="season-top"><span>Season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">${poy?'Player of the Year':'Year '+(career().year)+' awaits'}</span><span class="season-blurb">${poy?'You topped the Pro Tour. That is the summit of Texas golf.':'A new Pro Tour season starts in spring.'}</span></div>`;
+    const card=poy?['#8a6a12','National Player of the Year',`The best player in the country. +${HOF_PTS.poy+HOF_PTS.card} Hall of Fame points.`]
+      :keep?['#1f6b45','Card kept',`Top 10 keep their cards. +${HOF_PTS.card} Hall of Fame points. The bottom 6 are replaced by new state champions.`]
+      :['#8a2a1e','Back to Texas','11th or worse loses the National Tour card. Win Texas Player of the Year again to return.'];
+    return `<div class="season" style="--sc:${card[0]}"><div class="season-top"><span>National season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">${card[1]}</span><span class="season-blurb">${card[2]}</span></div>`+churn;
   }
   c.phase='qschool';
   return `<div class="season" style="--sc:#5a3f8a"><div class="season-top"><span>Season over</span><span>Finished ${ordinal(rank)}</span></div><span class="season-name">Q-School is next</span><span class="season-blurb">You missed the top 2. Win ${T.qEv.name} to move up anyway, or skip it and replay the year.</span></div>`;
@@ -2192,7 +2349,8 @@ function finishEvent(wd){
   const label=wd?'WD':(tied?'T':'')+myPos;
   let pts=totals.map(()=>0);
   if(kind!=='q'){ pts=awardPoints(totals, EV.mult); if(wd) pts[0]=0; keys.forEach((k,i)=>{ c.pts[k]=(c.pts[k]||0)+pts[i]; }); if(outright){ const w=keys[order[0]]; c.wins[w]=(c.wins[w]||0)+1; } }
-  const champ=!wd && myPos===1 && !tied, tierAt=c.tier;
+  const champ=!wd && myPos===1 && !tied, tierAt=c.tier, yrAt=c.year;
+  if(EV.tier===NAT && outright){ const w=keys[order[0]]; if(w!==ME || !wd) addHof(w, kind==='champ'?HOF_PTS.champ:EV.major?HOF_PTS.major:HOF_PTS.win); if(w===ME) save.stats.natWins=(save.stats.natWins||0)+1; }
   const prize=wd?0:(EV.payouts[myPos-1]||0), owed=EV._owed||0, net=Math.max(0, prize-owed);
   save.cash+=net;
   const s=save.stats, r=rec(EV.id);
@@ -2218,6 +2376,8 @@ function finishEvent(wd){
       note=`<div class="season" style="--sc:#1f6b45"><div class="season-top"><span>Q-School</span><span>Won it</span></div><span class="season-name">Welcome to the ${to}</span><span class="season-blurb">You earned your card the hard way.</span></div>`; }
     else { newYear(); note=`<div class="career">Only a win gets through Q-School. Year ${c.year} starts back on the ${tierDef().name}.</div>`; }
   }
+  if(!save.hofIn && (save.hofPts||0)>=HOF_TARGET){ save.hofIn=yrAt; save.hofList=(save.hofList||[]).concat([{name:ME, st:'TX', year:yrAt}]); save.pendingCeremony='hof'; addTrophy('hof','Hall of Fame','hof');
+    note+=`<div class="season" style="--sc:#5c4708"><div class="season-top"><span>Hall of Fame</span><span>${(save.hofPts).toLocaleString('en-US')} points</span></div><span class="season-name">You made it</span><span class="season-blurb">Head to the clubhouse for your induction.</span></div>`; }
   if(season().id!==prevSeason && kind==='season' && c.phase==='season'){ Sound.setSeason(season().id); note+=`<div class="season" style="--sc:${season().color}"><div class="season-top"><span>Season change</span><span>${tierDef().name}</span></div><span class="season-name">${season().name} is here</span><span class="season-blurb">${season().blurb}</span></div>`; }
   else if(season().id!==prevSeason) Sound.setSeason(season().id);
   persist();
@@ -2243,18 +2403,21 @@ function finishEvent(wd){
   $('#hubBtn').onclick=()=>{ hubTab='tour'; if(save.pendingCeremony) showCeremony(); else showHub(); };
 }
 function showCeremony(){
-  save.pendingCeremony=false; persist();
-  const s=save.stats, tc=save.texasChamp||{year:career().year}, tro=Object.keys(save.trophies).length, past=save.nemPast||[];
-  const fact=(l,v)=>`<div><span class="lbl">${l}</span><b>${v}</b></div>`;
-  openSheet('ceremony',`
-    <div class="sheet-head cere"><span class="kicker">Year ${tc.year} · Pro Tour</span><span class="title gold">Texas Champion</span>
-      <span class="head-sub">${esc(playerName()==='You'?'You':playerName())} topped the Pro Tour. From the Amateur tour to the summit of Texas golf.</span></div>
-    <div class="sheet-body">
-      <div class="facts facts4">${fact('Years',tc.year)}${fact('Events',s.events)}${fact('Wins',s.wins)}${fact('Majors',s.majors||0)}${fact('Top 5s',s.top5||0)}${fact('Earnings',money(s.earnings))}${fact('Best round',s.best===null?'-':fmtPar(s.best))}${fact('Trophies',tro)}</div>
+  const kind=save.pendingCeremony==='hof'?'hof':'texas'; save.pendingCeremony=false; persist();
+  const s=save.stats, tro=Object.keys(save.trophies).length, past=save.nemPast||[], fact=(l,v)=>`<div><span class="lbl">${l}</span><b>${v}</b></div>`;
+  let head, body;
+  if(kind==='hof'){
+    head=`<div class="sheet-head cere"><span class="kicker">Year ${save.hofIn} · Hall of Fame</span><span class="title gold">Inducted</span><span class="head-sub">${playerName()==='You'?'You are':esc(playerName())+' is'} in the Hall of Fame. Very few players ever get here.</span></div>`;
+    body=`<div class="facts facts4">${fact('Years',save.hofIn)}${fact('Events',s.events)}${fact('Wins',s.wins)}${fact('Majors',s.majors||0)}${fact('National wins',s.natWins||0)}${fact('National POY',s.npoy||0)}${fact('Earnings',money(s.earnings))}${fact('Trophies',tro)}</div>
+      <div class="invite"><span class="kicker">The plaque reads</span><b>${esc(playerName()==='You'?'Texas Champion':playerName())}</b><span>Texas. ${s.natYears||0} National Tour season${s.natYears===1?'':'s'}, ${(save.hofPts||0).toLocaleString('en-US')} Hall of Fame points. You have beaten Fairway Tour. Keep playing as long as you like.</span></div>`;
+  } else {
+    const tc=save.texasChamp||{year:career().year};
+    head=`<div class="sheet-head cere"><span class="kicker">Year ${tc.year} · Pro Tour</span><span class="title gold">Texas Champion</span><span class="head-sub">${playerName()==='You'?'You':esc(playerName())} topped the Pro Tour. From the Amateur tour to the summit of Texas golf.</span></div>`;
+    body=`<div class="facts facts4">${fact('Years',tc.year)}${fact('Events',s.events)}${fact('Wins',s.wins)}${fact('Majors',s.majors||0)}${fact('Top 5s',s.top5||0)}${fact('Earnings',money(s.earnings))}${fact('Best round',s.best===null?'-':fmtPar(s.best))}${fact('Trophies',tro)}</div>
       <div class="career" style="border:0;padding:0">${s.promotions||0} promotion${s.promotions===1?'':'s'} · ${s.birdies} birdies or better${s.hio?` · ${s.hio} hole${s.hio===1?'':'s'} in one`:''}${past.length?` · rivalries settled with ${past.map(p=>esc(p.name)).join(', ')}`:''}</div>
-      <div class="invite"><span class="kicker">An envelope arrives</span><b>The National Tour wants you</b><span>Fifteen state champions from across the country are waiting, and you will be Texas's champion among them. The National Tour opens in a coming update. Until then, defend your title. Every year from now on, the Texas Pro field gets a little sharper.</span></div>
-      <div class="row"><button class="btn primary" id="hubBtn" type="button">Keep playing</button></div>
-    </div>`, '#hubBtn');
+      <div class="invite"><span class="kicker">An envelope arrives</span><b>The National Tour wants you</b><span>Next season you play the National Tour as Texas's champion, against fifteen champions from other states. Top 10 keep their cards. Finish 11th or worse and you are back in Texas, where the Pro field gets sharper every year. Only National Tour results count toward the Hall of Fame.</span></div>`;
+  }
+  openSheet('ceremony', head+`<div class="sheet-body">${body}<div class="row"><button class="btn primary" id="hubBtn" type="button">Keep playing</button></div></div>`, '#hubBtn');
   Sound.cheer(1.4);
   $('#hubBtn').onclick=()=>{ hubTab='tour'; showHub(); };
 }

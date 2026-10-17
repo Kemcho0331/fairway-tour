@@ -1,10 +1,10 @@
 # Fairway Tour
 
-A top-down golf career game that runs in the browser. Everything lives in one file, `index.html`.
+A top-down golf career game that runs in the browser. Plain HTML, CSS, and JavaScript with no build step.
 
 ## Play
 
-Open the folder in VS Code and run `index.html` with the Live Server extension (right-click, Open with Live Server).
+Open the folder in VS Code and run `index.html` with the Live Server extension (right-click, Open with Live Server). Double-clicking `index.html` also works.
 
 ## Controls
 
@@ -12,6 +12,32 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Pull past the white tick to overswing (up to 110%) for extra distance, with a risk of a hook or slice.
 - Clubs are picked for you. Tap a club or press 1 to 4 to switch.
 - V views the whole hole, L opens the leaderboard, M toggles sound.
+
+## Project layout
+
+```
+index.html        page layout and the list of scripts
+css/style.css     all styling
+js/core.js        shared helpers and constants: terrain, clubs, gear, seasons
+js/course.js      hole layouts, archetypes, greens, slopes, pins
+js/tour.js        tiers, settings, schedules, events, points
+js/rivals.js      nemesis rivalries, Career tab, trophy case
+js/save.js        saving, loading, palettes
+js/looks.js       National course looks
+js/sponsors.js    sponsors, goals, reward items, the bag
+js/national.js    National Tour field, relegation, Hall of Fame
+js/clubs.js       effective club stats
+js/audio.js       music and sound effects
+js/holes.js       terrain map, trees, the painted course
+js/scenery.js     Texas scenery past the out-of-bounds stakes
+js/golfer.js      the golfer and swing animation
+js/play.js        shots, ball physics, scoring, HUD
+js/ui.js          clubhouse tabs and all menus
+js/loop.js        input, camera, weather, drawing, frame loop
+js/main.js        starts the game
+```
+
+The scripts are classic `<script>` tags loaded in order and share one global scope, so the order in `index.html` matters.
 
 ## Features
 

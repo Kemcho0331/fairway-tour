@@ -14,7 +14,7 @@ async function makeSaveCode(){
 async function readSaveCode(code){
   const txt=(code||'').trim(); if(!txt) throw new Error('Paste a save code in the box first.');
   let data=null;
-  const m=/FT\s*([01])\s*:\s*([A-Za-z0-9+/=_\-\s]+)/.exec(txt);
+  const m=/FT\s*([01])\s*:\s*([A-Za-z0-9+/=_\-\s]+)/i.exec(txt);  // the FT1 prefix can be any case
   if(m){
     // the code may be wrapped across lines, or followed by other words: try the longest run that decodes
     const parts=m[2].trim().split(/\s+/); let lastErr='That code looks cut off. Copy the whole thing again, from FT to the very end.';

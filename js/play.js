@@ -60,7 +60,7 @@ function setReady(){
   trackLie(); state='ready'; ball.lipped=false; gpos={x:ball.x,y:ball.y}; swing.phase='address'; swing.cur=G_A0;
   if(season().gusty && strokes>0) gust();
   autoIdx=clubIdx=pickClub(); renderRack(); updateHud();
-  if(holeIdx===0 && strokes===0 && save.stats.events<2) toast('Drag back from anywhere, then let go to swing', 0);
+  if(holeIdx===0 && strokes===0 && save.stats.events<2 && !(EV&&EV.practice)) toast('Drag back from anywhere, then let go to swing', 0);
 }
 function pickClub(){
   const lie=terrainAt(ball.x,ball.y), d=dist(ball,hole.cup), w=eff(2).total, ir=eff(1).total;
@@ -81,9 +81,9 @@ function shoot(dx,dy,p){
   const ang=Math.atan2(dy,dx)+(Math.random()*2-1)*spread*Math.PI/180;
   const ux=Math.cos(ang), uy=Math.sin(ang), lf=lieFactor(e,lie), pt=eff(3);
   swing.phase='down'; swing.t=0; swing.from=swing.cur; swing.to=G_A0-(e.putt?0.9:2.5);
-  ball.trail=[]; ball.lipped=false; ball.capture=pt.capture*(e.putt?1:0.7); ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null; ball.landAt=null; ball.brk=e.putt?(e.brk||1):1;
+  ball.trail=[]; ball.lipped=false; ball.capture=pt.capture*(e.putt?1:0.7); ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null; ball.landAt=null; ball.poleX=null; ball.brk=e.putt?(e.brk||1):1;
   if(e.putt){
-    const v=e.v*p*lf*(1+clamp(gauss(),-2.5,2.5)*e.speedErr); ball.vx=ux*v; ball.vy=uy*v; ball.z=0; state='rolling'; Sound.putt(p);
+    const v=e.v*p*lf*(1+clamp(gauss(),-2.5,2.5)*e.speedErr); ball.vx=ux*v; ball.vy=uy*v; ball.z=0; state='rolling'; Sound.putt(p); resetShotSel(); ball.lowFlight=false;
   } else {
     const carry=p*e.carry*lf, T=e.T*(0.45+0.55*pc), v=carry/T;
     ball.vx=ux*v; ball.vy=uy*v; ball.t=0; ball.T=T; ball.h=e.h*(0.5+0.5*pc); state='flying';
@@ -96,9 +96,10 @@ function shoot(dx,dy,p){
         ball.curveMsg = side===1 ? (D>carry*0.1?'Overswing! Big hook':'Overswing. Hooked it') : (D>carry*0.1?'Overswing! Big slice':'Overswing. Sliced it');
       }
     }
+    applyShape(e, lie, carry, ux, uy);
     Sound.swing(pc); Sound.hit(); if(isSand(lie)){ Sound.land(SAND); fx.push({type:'puff',x:ball.x,y:ball.y,t:0}); }
   }
-  updateHud();
+  updateHud(); renderShotBar();
 }
 
 function hitTree(inAir){
@@ -117,7 +118,8 @@ function stepFlight(dt){
   for(let i=0;i<n;i++){
     ball.t+=h; ball.vx+=(wind.ax*ball.windMult+ball.cax)*h; ball.vy+=(wind.ay*ball.windMult+ball.cay)*h; ball.x+=ball.vx*h; ball.y+=ball.vy*h;
     const u=Math.min(1,ball.t/ball.T); ball.z=4*ball.h*u*(1-u);
-    if(ball.z<18 && hitTree(true)) ball.t=ball.T;
+    if(DRILL && ball.poleX==null && ball.y<=POLE_Y()) ball.poleX=ball.x;
+    if(ball.z<18 && !ball.lowFlight && hitTree(true)) ball.t=ball.T;
     if(ball.t>=ball.T){ land(); return; }
   }
   ball.trail.push({x:ball.x,y:ball.y-ball.z}); if(ball.trail.length>28) ball.trail.shift();
@@ -248,9 +250,11 @@ function updateHud(){
 }
 function renderRack(){
   $('#rack').innerHTML=CLUBS.map((c,i)=>{ const e=eff(i); return `<button type="button" class="club${i===clubIdx?' active':''}" data-i="${i}" aria-pressed="${i===clubIdx}" title="${e.sig?e.sig.name:TIERS[e.tier]+' '+c.name} (${i+1})">${i===autoIdx?'<span class="auto">AUTO</span>':''}<b>${c.name}</b><small>${c.putt?(e.sig?e.sig.short:TIERS[e.tier]):Math.round(e.total*YPP)+' yds'}</small></button>`; }).join('');
+  renderShotBar();
 }
 $('#rack').addEventListener('click',e=>{ const b=e.target.closest('.club'); if(!b) return; selectClub(+b.dataset.i); });
 function selectClub(i){ if(state!=='ready'||i===clubIdx) return; clubIdx=i; Sound.tick(); renderRack(); }
+$('#shotbar').addEventListener('click',e=>{ const b=e.target.closest('[data-shot]'); if(!b) return; const [k,v]=b.dataset.shot.split(':'); pickShot(k,v); });
 
 let toastTimer=null;
 let toastSticky=false;

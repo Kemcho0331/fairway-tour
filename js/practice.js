@@ -94,8 +94,8 @@ function startRange(){
 }
 function rangeReset(){
   const p=rangeSpot(); strokes=0; ball.x=p.x; ball.y=p.y; ball.z=0; ball.vx=ball.vy=0; ball.hidden=false; ball.holed=false; ball.sink=0; ball.trail=[]; ball.landAt=null;
-  if(RANGE.wind!=='calm') rollWind(); else setWind(0,0,{mph:0,a:0});
-  const keep=clubIdx; setReady(); clubIdx=keep; renderRack(); updateHud();
+  if(DRILL && DRILL.kind==='low') setWind(25,0,{mph:25,a:0}); else if(RANGE.wind!=='calm') rollWind(); else setWind(0,0,{mph:0,a:0});
+  const keep=clubIdx; setReady(); clubIdx=keep; if(DRILL) drillShotFor(); renderRack(); updateHud();
 }
 // called when a range ball stops, goes out, or drops in
 function rangeShot(kind){
@@ -103,13 +103,14 @@ function rangeShot(kind){
   const carry=ball.landAt?dist(from,ball.landAt)*YPP:0, total=kind==='ob'?0:dist(from,ball)*YPP, off=(ball.x-from.x)*YPP;
   const shot={club:club.name, carry:Math.round(carry), total:Math.round(total), off:Math.round(off), note:kind==='ob'?'Out of play':kind==='holed'?'Holed it!':''};
   RANGE.shots.unshift(shot); RANGE.shots=RANGE.shots.slice(0,12);
-  toast(shot.note && kind==='ob' ? `${club.name} · out of play` : `${club.name} · carry ${shot.carry} · total ${shot.total} yds${Math.abs(shot.off)>=2?` · ${Math.abs(shot.off)} ${shot.off<0?'left':'right'}`:''}${kind==='holed'?' · holed it!':''}`, 2600);
+  if(DRILL) drillAfterShot(shot); else toast(shot.note && kind==='ob' ? `${club.name} · out of play` : `${club.name} · carry ${shot.carry} · total ${shot.total} yds${Math.abs(shot.off)>=2?` · ${Math.abs(shot.off)} ${shot.off<0?'left':'right'}`:''}${kind==='holed'?' · holed it!':''}`, 2600);
   updateHud(); setTimeout(()=>{ if(EV&&EV.range&&state!=='menu') rangeReset(); }, 900);
   state='range-wait';
 }
 function rangeHud(){
   const s=RANGE.shots[0];
-  $('#hHole').textContent='Driving range'; $('#hPar').textContent=RANGE.shots.length; $('#hYds').textContent='shots hit';
+  if(DRILL){ $('#hHole').textContent=`${LESSONS.find(l=>l.id===DRILL.kind).name} drill`; $('#hPar').textContent=`${DRILL.made}/${DRILL.need}`; $('#hYds').textContent=`ball ${Math.min(DRILL.ball+1,DRILL.total)} of ${DRILL.total}`; }
+  else { $('#hHole').textContent='Driving range'; $('#hPar').textContent=RANGE.shots.length; $('#hYds').textContent='shots hit'; }
   $('#hL2').textContent='Carry'; $('#hStrokes').textContent=s?s.carry:'-'; $('#hPin').textContent='yards';
   $('#hL3').textContent='Total'; const t=$('#hTotal'); t.textContent=s?s.total:'-'; t.classList.remove('under'); $('#hPos').textContent=s?(Math.abs(s.off)<2?'on line':`${Math.abs(s.off)} yds ${s.off<0?'left':'right'}`):'yards';
 }
@@ -119,16 +120,16 @@ function showRangeSheet(){
   const chip=(key,cur,opts)=>Object.entries(opts).map(([k,v])=>`<button class="tchip sm" type="button" data-r="${key}:${k}" aria-pressed="${cur===k}">${Array.isArray(v)?v[1]:v.name}</button>`).join('');
   openSheet('board',`
     <div class="sheet-head"><span class="kicker">Practice</span><span class="title">Driving range</span><span class="head-sub">Nothing here counts toward stats or achievements.</span></div>
-    <div class="sheet-body">
-      <div class="opt"><span class="lbl">Hit from</span><div class="chips">${chip('start',RANGE.start,RANGE_STARTS)}</div></div>
-      <div class="opt"><span class="lbl">Wind</span><div class="chips">${chip('wind',RANGE.wind,RANGE_WIND)}</div></div>
+    <div class="sheet-body">${DRILL?`<div class="field">${DRILL_INFO[DRILL.kind].how}</div>`:''}
+      <div class="opt" ${DRILL?'hidden':''}><span class="lbl">Hit from</span><div class="chips">${chip('start',RANGE.start,RANGE_STARTS)}</div></div>
+      <div class="opt" ${DRILL?'hidden':''}><span class="lbl">Wind</span><div class="chips">${chip('wind',RANGE.wind,RANGE_WIND)}</div></div>
       ${avg?`<div class="facts" style="grid-template-columns:repeat(${Math.min(4,Object.keys(by).length)},1fr)">${avg}</div>`:''}
       ${RANGE.shots.length?`<table class="lb"><thead><tr><th>Club</th><th class="r">Carry</th><th class="r">Total</th><th class="r">Line</th></tr></thead><tbody>${RANGE.shots.map(s=>`<tr><td>${s.club}</td><td class="r">${s.note==='Out of play'?'-':s.carry}</td><td class="r">${s.note==='Out of play'?'OB':s.total}</td><td class="r">${s.note==='Out of play'?'':Math.abs(s.off)<2?'on line':Math.abs(s.off)+(s.off<0?' L':' R')}</td></tr>`).join('')}</tbody></table>`:'<div class="field">No shots yet. Your last 12 shots show up here.</div>'}
-      <div class="row"><button class="btn primary" id="backBtn" type="button">Keep hitting</button><button class="btn ghost" id="leaveBtn" type="button">Leave the range</button></div>
+      <div class="row"><button class="btn primary" id="backBtn" type="button">Keep hitting</button><button class="btn ghost" id="leaveBtn" type="button">${DRILL?'Quit the drill':'Leave the range'}</button></div>
     </div>`, '#backBtn');
   sheet.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.r.split(':'); RANGE[k]=v; if(k==='wind') EV.windMax=RANGE_WIND[v][0]; Sound.tick(); showRangeSheet(); });
   $('#backBtn').onclick=()=>{ closeSheet(); if(state==='ready') rangeReset(); };
-  $('#leaveBtn').onclick=()=>{ rangeHole.vis=null; rangeHole.built=false; hubTab='tour'; showHub(); };
+  $('#leaveBtn').onclick=()=>{ DRILL=null; resetShotSel(); rangeHole.vis=null; rangeHole.built=false; hubTab='tour'; showHub(); };
 }
 function practiceButtons(){
   return `<h3 class="sec">Practice</h3><div class="row"><button class="btn ghost sm" type="button" data-act="range">Driving range</button><button class="btn ghost sm" type="button" data-act="practice">Free practice</button></div>`;

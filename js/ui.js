@@ -27,7 +27,7 @@ function showHub(keepScroll){
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));
   sheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>buyColor(b.dataset.color));
   sheet.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.g.split(':'); save.golfer[k]=k==='skin'?+v:k==='watch'?!!v:v; persist(); Sound.tick(); showHub(true); });
-  wireBag(()=>showHub(true));
+  wireBag(()=>showHub(true)); wireSchool();
   const gn=$('#gname'); if(gn) gn.oninput=()=>{ save.golfer.name=gn.value.slice(0,16); persist(); };
   const st=$('#soundToggle'); if(st) st.onclick=()=>{ toggleSound(); st.textContent=Sound.muted?'Sound off':'Sound on'; };
 }
@@ -102,6 +102,7 @@ function golferHTML(){
   return `<div class="golfer-wrap"><canvas id="gprev" width="300" height="300" aria-label="Your golfer taking a practice swing"></canvas>
       <div class="name-field"><label class="lbl" for="gname">Name on the leaderboard</label><input id="gname" type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="You" value="${esc(g.name||'')}"><small>Leave blank to show up as "You."</small></div></div>
     <h3 class="sec">Your bag</h3>${bagHTML()}
+    <h3 class="sec">Shot School</h3>${shotSchoolHTML()}
     <h3 class="sec">Look</h3>
     <div class="opt"><span class="lbl">Skin tone</span><div class="chips">${chips('skin',LOOK.skins,g.skin)}</div></div>
     <div class="opt"><span class="lbl">Shirt</span><div class="chips">${chips('shirt',shirts,g.shirt)}</div></div>

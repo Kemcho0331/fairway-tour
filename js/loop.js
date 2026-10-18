@@ -130,7 +130,7 @@ function draw(){
   if(hole.sur){ const sx0=Math.max(-SMX,-ox/z), sy0=Math.max(-SMY,-oy/z), sx1=Math.min(hole.w+SMX,(vw-ox)/z), sy1=Math.min(hole.H+SMY,(vh-oy)/z);
     if(sx1>sx0 && sy1>sy0) ctx.drawImage(hole.sur, (sx0+SMX)*SS, (sy0+SMY)*SS, (sx1-sx0)*SS, (sy1-sy0)*SS, sx0, sy0, sx1-sx0, sy1-sy0); }
   if(x1>x0 && y1>y0) ctx.drawImage(vis, x0*VIS, y0*VIS, (x1-x0)*VIS, (y1-y0)*VIS, x0, y0, x1-x0, y1-y0);
-  drawCup(z); drawFx(z);
+  drawCup(z); drawDrill(z); drawFx(z);
   if(state!=='menu'){ drawBall(z); drawGolferWorld(z); }
   if(aim && state==='ready') drawAim(z);
   drawWeather();
@@ -190,12 +190,12 @@ function drawAim(z){
     aimLabel(`~${Math.max(5,Math.round(ft/5)*5)} ft`, ex, ey-10/z, z);
     return;
   }
-  const hh=e.h*(0.5+0.5*pc);
+  const sm=shotMods(e,lie,p*e.carry*lf), hh=e.h*(0.5+0.5*pc)*sm.h, nx=a.dy*sm.side, ny=-a.dx*sm.side;
   {
-    const full=p*e.carry, n=10, frac=0.42;
-    for(let i=1;i<=n;i++){ const u=frac*i/n, x=ball.x+a.dx*full*u, y=ball.y+a.dy*full*u-4*hh*u*(1-u)*0.9; ctx.fillStyle=`rgba(255,255,255,${(0.92*(1-i/(n+2))).toFixed(3)})`; ctx.beginPath(); ctx.arc(x,y,2.6/z,0,7); ctx.fill(); }
-    const lx=ball.x+a.dx*full*frac, ly=ball.y+a.dy*full*frac-4*hh*frac*(1-frac)*0.9;
-    aimLabel(`~${Math.round(full*YPP/10)*10} yds`, lx, ly-10/z, z);
+    const full=p*e.carry*sm.carry, n=10, frac=sm.D?0.6:0.42;
+    for(let i=1;i<=n;i++){ const u=frac*i/n, w=sm.D*u*u, x=ball.x+a.dx*full*u+nx*w, y=ball.y+a.dy*full*u+ny*w-4*hh*u*(1-u)*0.9; if(sm.D&&sm.spread){ ctx.fillStyle='rgba(255,255,255,.1)'; ctx.beginPath(); ctx.arc(x,y,Math.max(3/z,w*sm.spread*1.6),0,7); ctx.fill(); } ctx.fillStyle=`rgba(255,255,255,${(0.92*(1-i/(n+2))).toFixed(3)})`; ctx.beginPath(); ctx.arc(x,y,2.6/z,0,7); ctx.fill(); }
+    const lw=sm.D*frac*frac, lx=ball.x+a.dx*full*frac+nx*lw, ly=ball.y+a.dy*full*frac+ny*lw-4*hh*frac*(1-frac)*0.9;
+    aimLabel(`~${Math.round(full*YPP/10)*10} yds${sm.label?' · '+sm.label:''}`, lx, ly-10/z, z);
   }
 }
 

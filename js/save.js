@@ -5,7 +5,7 @@ function rollDist(v, fric){ let d=0; const dt=1/120; let n=0; while(v>4 && n++<5
 
 /* ---------- Save ---------- */
 const SAVE_KEY = 'fairway-tour-v3', OLD_KEYS = ['fairway-tour-v2','fairway-tour-v1'];
-function defaultSave(){ return {cash:0, muted:false, nem:null, nemPast:[], trophies:{}, form:[], career:{tier:0, year:1, k:0, phase:'season', pts:{}, wins:{}, played:{}}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0, top5:0, majors:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', items:[], sp:{}, bag:{driver:null,iron:null,wedge:null,putter:null}, golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white'}}; }
+function defaultSave(){ return {cash:0, muted:false, nem:null, nemPast:[], trophies:{}, form:[], career:{tier:0, year:1, k:0, phase:'season', pts:{}, wins:{}, played:{}}, stats:{events:0, wins:0, best:null, hio:0, birdies:0, earnings:0, top5:0, majors:0}, events:{}, gear:{driver:0,iron:0,wedge:0,putter:0}, ballsOwned:['std'], ball:'std', colorsOwned:['white'], color:'white', items:[], sp:{}, bag:{driver:null,iron:null,wedge:null,putter:null}, golfer:{name:'', skin:1, shirt:'navy', pants:'khaki', hat:'cap', hatColor:'white', hand:'R'}}; }
 function loadSave(){
   const d=defaultSave();
   try{

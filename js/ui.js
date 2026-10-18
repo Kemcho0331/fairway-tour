@@ -105,6 +105,7 @@ function golferHTML(){
     <h3 class="sec">Your bag</h3>${bagHTML()}
     <h3 class="sec">Shot School</h3>${shotSchoolHTML()}
     <h3 class="sec">Look</h3>
+    <div class="opt"><span class="lbl">Swings</span><div class="chips"><button class="tchip" type="button" data-g="hand:R" aria-pressed="${g.hand!=='L'}">Right-handed</button><button class="tchip" type="button" data-g="hand:L" aria-pressed="${g.hand==='L'}">Left-handed</button></div></div>
     <div class="opt"><span class="lbl">Skin tone</span><div class="chips">${chips('skin',LOOK.skins,g.skin)}</div></div>
     <div class="opt"><span class="lbl">Shirt</span><div class="chips">${chips('shirt',shirts,g.shirt)}</div></div>
     <div class="opt"><span class="lbl">Pants</span><div class="chips">${chips('pants',pants,g.pants)}</div></div>

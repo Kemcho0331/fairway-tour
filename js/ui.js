@@ -21,7 +21,7 @@ function showHub(keepScroll){
   const body=hubTab==='tour'?tourHTML():hubTab==='standings'?standingsHTML():hubTab==='career'?careerTabHTML():hubTab==='golfer'?golferHTML():shopHTML();
   openSheet('hub', head + `<div class="sheet-body">${body}</div>`, null, keepScroll);
   sheet.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ if(hubTab!==b.dataset.tab){ hubTab=b.dataset.tab; Sound.tick(); showHub(); } });
-  sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
+  sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='range') startRange(); else if(a==='practice') showPracticePicker(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
   sheet.querySelectorAll('[data-xsort]').forEach(b=>b.onclick=()=>{ save.exclSort=b.dataset.xsort; persist(); Sound.tick(); showHub(true); });
   sheet.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUpgrade(b.dataset.up));
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));
@@ -67,6 +67,7 @@ function tourHTML(){
     + row('★',T.champEv,c.played.champ,c.phase==='champ','<span class="chip-s" style="background:var(--pine-2)">Top 6</span>')
     + (c.phase==='qschool'?row('Q',T.qEv,null,true,''):'');
   return careerCard() + next + `<h3 class="sec">${tierSponsors(c.tier).length>1?'Sponsors':'Sponsor'}</h3><div>${sponsorSummary()}</div><h3 class="sec">${T.name} schedule · Year ${c.year}</h3><div class="sched">${rows}</div>
+    ${practiceButtons()}
     <details class="how"><summary>How to play</summary><ul class="howto">
       <li>Drag back from anywhere and let go to swing. A longer pull hits harder.</li>
       <li>Pull past the white tick to overswing. You get extra distance, but risk a hook or slice.</li>
@@ -162,11 +163,10 @@ function showHoleSheet(i,score){
       <span class="head-sub">${score} stroke${score===1?'':'s'}${score>=MAX_STROKES?' (picked up)':''}</span>
     </div>
     <div class="sheet-body">
-      ${nemHoleLine(i)}${goalHoleHTML()}
-      ${boardHTML()}
+      ${live()?nemHoleLine(i)+goalHoleHTML()+boardHTML():cardHTML()}
       <div class="row"><button class="btn primary" id="nextBtn" type="button">${last?'Final results':cutHole?'Round 1 results':'Next hole'}</button></div>
     </div>`, '#nextBtn');
-  $('#nextBtn').onclick=()=>{ closeSheet(); if(last) showResults(); else if(cutHole) showCut(); else { startHole(i+1); beginIntro(); } };
+  $('#nextBtn').onclick=()=>{ closeSheet(); if(last){ if(live()) showResults(); else showPracticeDone(); } else if(cutHole) showCut(); else { startHole(i+1); beginIntro(); } };
 }
 function playCurrent(){
   EV=currentEvent(); Sound.init();
@@ -335,6 +335,10 @@ function simulateChamp(){
 }
 function showBoard(){
   if(sheetKind || state==='menu') return;
+  if(EV.range) return showRangeSheet();
+  if(EV.practice){ openSheet('board',`<div class="sheet-head"><span class="kicker">${EV.name} · practice</span><span class="title">Scorecard</span></div>
+      <div class="sheet-body">${cardHTML()}<div class="row"><button class="btn primary" id="backBtn" type="button">Back to the course</button><button class="btn ghost" id="endBtn" type="button">End practice</button></div></div>`, '#backBtn');
+    $('#backBtn').onclick=closeSheet; $('#endBtn').onclick=()=>{ aim=null; hubTab='tour'; showHub(); }; return; }
   openSheet('board',`
     <div class="sheet-head"><span class="kicker">Leaderboard · after ${playerScores.length} of ${HOLES.length}</span><span class="title">${EV.name}</span></div>
     <div class="sheet-body">${goalHoleHTML()}${boardHTML()}

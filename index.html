@@ -16,8 +16,8 @@
   <header class="hud-top">
     <div class="strip" role="group" aria-label="Scoreboard">
       <div class="cell"><span class="lbl" id="hHole">Hole 1/3</span><span class="val" id="hPar">Par 4</span><span class="sub" id="hYds">351 yds</span></div>
-      <div class="cell"><span class="lbl">Strokes</span><span class="val" id="hStrokes">0</span><span class="sub" id="hPin">Pin 351 yds</span></div>
-      <div class="cell"><span class="lbl">Total</span><span class="val" id="hTotal">E</span><span class="sub" id="hPos">Round 1</span></div>
+      <div class="cell"><span class="lbl" id="hL2">Strokes</span><span class="val" id="hStrokes">0</span><span class="sub" id="hPin">Pin 351 yds</span></div>
+      <div class="cell"><span class="lbl" id="hL3">Total</span><span class="val" id="hTotal">E</span><span class="sub" id="hPos">Round 1</span></div>
       <div class="cell"><span class="lbl">Wind</span><span class="val"><svg id="hWindArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h15M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="hWind">0</span></span><span class="sub">mph</span></div>
     </div>
     <div class="tools">
@@ -26,6 +26,9 @@
       </button>
       <button class="icon-btn" id="boardBtn" type="button" aria-label="Leaderboard" title="Leaderboard (L)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>
+      </button>
+      <button class="icon-btn" id="cardBtn" type="button" aria-label="Scorecard" title="Scorecard (C)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 10h17M9 5v14M14.5 5v14"/></svg>
       </button>
       <button class="icon-btn" id="soundBtn" type="button" aria-label="Sound" aria-pressed="true" title="Sound (M)"></button>
     </div>
@@ -63,6 +66,7 @@
 <script src="js/ui.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/achievements.js"></script>
+<script src="js/practice.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

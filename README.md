@@ -11,7 +11,7 @@ Open the folder in VS Code and run `index.html` with the Live Server extension (
 - Drag back from anywhere and release to swing. A longer pull hits harder.
 - Pull past the white tick to overswing (up to 110%) for extra distance, with a risk of a hook or slice.
 - Clubs are picked for you. Tap a club or press 1 to 4 to switch.
-- V views the whole hole, L opens the leaderboard, M toggles sound.
+- V views the whole hole, L opens the leaderboard, C opens the scorecard, M toggles sound.
 
 ## Project layout
 
@@ -35,6 +35,7 @@ js/play.js        shots, ball physics, scoring, HUD
 js/ui.js          clubhouse tabs and all menus
 js/loop.js        input, camera, weather, drawing, frame loop
 js/achievements.js  54 achievements, popups, and the Career tab list
+js/practice.js    driving range, free practice, and the scorecard
 js/main.js        starts the game
 ```
 
@@ -74,6 +75,9 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - Tension music on the final hole of a major, built from that season's own chords with a heartbeat underneath
 - National sponsors: Summit Outfitters and Keystone Golf Works, with a $100,000 endorsement, the best ball in the game, and a Pro-level signature iron with no drawback
 - 54 achievements across shots, rounds, career, rivals, gear, and travel, with popups and a full list in the Career tab
+- A driving range with yardage lines and target flags: hit from the tee, fairway, rough, or a bunker, choose the wind, and see carry, total, and line for your last 12 shots with per-club averages
+- Free practice on any course you have reached, with no fee, field, or points, and nothing counting toward stats
+- A scorecard button during rounds, with birdie circles and bogey squares, both rounds of a major, and your nemesis's card
 - A 1,000-point Hall of Fame earned only on the National Tour, with an induction ceremony, a wall of legends, and rare rival inductees
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
 - A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
@@ -83,5 +87,4 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 
 ## Roadmap
 
-- Driving range, free practice, and a scorecard button
 - New Game+

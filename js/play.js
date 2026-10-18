@@ -19,6 +19,7 @@ function rivalScore(par, skill, diff, form, persona){
   return par+Math.min(3,rel);
 }
 function newTournament(){
+  if(EV.practice){ HOLES=EV.holes; field=[{name:'You',you:true}]; playerScores=[]; duckUsed=false; resetRS(); HOLES.forEach(h=>setPin(h, h.pins[(Math.random()*h.pins.length)|0])); startHole(0); return; }
   HOLES=EV.rounds===2?EV.holes.concat(EV.holes):EV.holes; EV._mc=false;
   const rt = EV.kind==='q' ? Math.min(3,EV.tier+1) : EV.tier, full=tierRoster(rt), n=nem();
   const ros = EV.kind==='champ' ? tableRows().filter(r=>!r.you).slice(0,5).map(r=>full.find(x=>x[0]===r.n)) : full;
@@ -80,7 +81,7 @@ function shoot(dx,dy,p){
   const ang=Math.atan2(dy,dx)+(Math.random()*2-1)*spread*Math.PI/180;
   const ux=Math.cos(ang), uy=Math.sin(ang), lf=lieFactor(e,lie), pt=eff(3);
   swing.phase='down'; swing.t=0; swing.from=swing.cur; swing.to=G_A0-(e.putt?0.9:2.5);
-  ball.trail=[]; ball.lipped=false; ball.capture=pt.capture*(e.putt?1:0.7); ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null; ball.brk=e.putt?(e.brk||1):1;
+  ball.trail=[]; ball.lipped=false; ball.capture=pt.capture*(e.putt?1:0.7); ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null; ball.landAt=null; ball.brk=e.putt?(e.brk||1):1;
   if(e.putt){
     const v=e.v*p*lf*(1+clamp(gauss(),-2.5,2.5)*e.speedErr); ball.vx=ux*v; ball.vy=uy*v; ball.z=0; state='rolling'; Sound.putt(p);
   } else {
@@ -106,7 +107,7 @@ function hitTree(inAir){
     if(d<rr && d>0.001){
       const nx=dx/d, ny=dy/d; ball.x=t.x+nx*(rr+0.5); ball.y=t.y+ny*(rr+0.5);
       const vn=ball.vx*nx+ball.vy*ny; if(vn<0){ ball.vx-=2*vn*nx; ball.vy-=2*vn*ny; }
-      const k=inAir?0.3:0.5; ball.vx*=k; ball.vy*=k; Sound.thunk(); save.stats.trees=(save.stats.trees||0)+1; return true;
+      const k=inAir?0.3:0.5; ball.vx*=k; ball.vy*=k; Sound.thunk(); if(live()) save.stats.trees=(save.stats.trees||0)+1; return true;
     }
   }
   return false;
@@ -122,7 +123,7 @@ function stepFlight(dt){
   ball.trail.push({x:ball.x,y:ball.y-ball.z}); if(ball.trail.length>28) ball.trail.shift();
 }
 function land(){
-  ball.z=0; const t=terrainAt(ball.x,ball.y);
+  ball.landAt=ball.landAt||{x:ball.x,y:ball.y}; ball.z=0; const t=terrainAt(ball.x,ball.y);
   if(ball.curveMsg){ toast(ball.curveMsg,1500); ball.curveMsg=null; }
   if(t===OOB) return penalty('oob');
   if(t===WATER) return penalty('water');
@@ -159,16 +160,18 @@ function stepRoll(dt){
   if(Math.hypot(ball.vx,ball.vy)<4){ ball.vx=ball.vy=0; stopped(); }
 }
 function stopped(){
+  if(EV&&EV.range){ const ob=ball.rangeOB; ball.rangeOB=false; return rangeShot(ob?'ob':'stop'); }
   if(strokes>=MAX_STROKES){ state='holed'; holedT=1.6; toast(`Picked up at ${MAX_STROKES} strokes`); return; }
   setReady();
 }
 function penalty(kind){
+  if(EV&&EV.range) ball.rangeOB=true;
   state='penalty'; penT=1.5; ball.vx=ball.vy=0; ball.z=0; ball.hidden=true; ball.trail=[];
   ball.dropTo=(kind==='water' && hole.drop) ? {x:hole.drop.x, y:hole.drop.y} : null;
   if(kind==='water'){
     Sound.splash(); fx.push({type:'splash',x:ball.x,y:ball.y,t:0});
-    if(save.ball==='duck' && !duckUsed){ duckUsed=true; save.stats.ducks=(save.stats.ducks||0)+1; toast('Lucky Duck! No penalty this time'); }
-    else { strokes++; save.stats.splashes=(save.stats.splashes||0)+1; if(RS){ RS.pens++; HS.pen=true; } toast(ball.dropTo?'Splash! +1. Play from the drop zone':'Splash! +1 penalty stroke'); }
+    if(save.ball==='duck' && !duckUsed){ duckUsed=true; if(live()) save.stats.ducks=(save.stats.ducks||0)+1; toast('Lucky Duck! No penalty this time'); }
+    else { strokes++; if(live()) save.stats.splashes=(save.stats.splashes||0)+1; if(RS){ RS.pens++; HS.pen=true; } toast(ball.dropTo?'Splash! +1. Play from the drop zone':'Splash! +1 penalty stroke'); }
   } else { strokes++; if(RS){ RS.pens++; HS.pen=true; } Sound.thunk(); toast('Out of bounds. +1 penalty stroke'); }
   updateHud();
 }
@@ -187,16 +190,17 @@ function scoreName(score,par){
   return names[r] || (r>0?`+${r}`:`${r}`);
 }
 function completeHole(){
+  if(EV&&EV.range){ state='done'; return rangeShot('holed'); }
   state='done'; hideToast(); Sound.setTension(false);
   const score=Math.min(strokes,MAX_STROKES), i=holeIdx, rel=score-HOLES[i].par;
   playerScores.push(score);
-  if(rel<=-1) save.stats.birdies++;
+  if(rel<=-1 && live()) save.stats.birdies++;
   if(RS){ if(HS.gir) RS.gir++; if(HS.putts>=3) RS.three++; if(rel<=-1){ RS.birdies++; RS.run++; RS.streak=Math.max(RS.streak,RS.run); } else RS.run=0; if(rel<=-2) RS.eagles++; if(rel>=1) RS.bogeys++; if(HS.sand&&rel<=0) RS.sandSave++; }
-  if(score===1) save.stats.hio++;
-  const S=save.stats; if(rel<=-2) S.eagles=(S.eagles||0)+1; if(rel<=-3) S.albatross=(S.albatross||0)+1; if(score>=8) S.snowmen=(S.snowmen||0)+1;
+  if(score===1 && live()) save.stats.hio++;
+  const S=live()?save.stats:{}; if(rel<=-2) S.eagles=(S.eagles||0)+1; if(rel<=-3) S.albatross=(S.albatross||0)+1; if(score>=8) S.snowmen=(S.snowmen||0)+1;
   if(RS){ if(HS.sand&&rel<=0) S.sandSaves=(S.sandSaves||0)+1; S.streakBest=Math.max(S.streakBest||0,RS.streak); S.maxPutt=Math.max(S.maxPutt||0,RS.longPutt); S.maxDrive=Math.max(S.maxDrive||0,RS.longDrive);
     const stn=standings(), me=stn.find(x=>x.you), lead=Math.min(...stn.filter(x=>!x.mc).map(x=>x.tot)), def=me.tot-lead; if(def>0) RS.ledAll=false; RS.maxDef=Math.max(RS.maxDef,def); }
-  checkAch();
+  if(live()) checkAch();
   persist(); updateHud(); showHoleSheet(i,score);
 }
 
@@ -222,6 +226,7 @@ function boardHTML(){
 /* ---------- HUD ---------- */
 function updateHud(){
   if(!hole) return;
+  $('#hL2').textContent='Strokes'; $('#hL3').textContent='Total';
   $('#hHole').textContent=holeText(holeIdx,true);
   $('#hPar').textContent=`Par ${hole.par}`;
   $('#hYds').textContent=`${hole.yards} yds`;
@@ -239,6 +244,7 @@ function updateHud(){
     const atTee=dist(ball,hole.tee)<2;
     lieEl.textContent = atTee ? 'Tee box · full power' : lie===GREEN ? 'On the green · putt it' : (lie===ROUGH&&hole.roughName ? hole.roughName : lie===ROUGH&&isDesert(hole) ? 'Desert · rocky, less power' : `${TER[lie]?TER[lie].name:'Rough'} · ${TER[lie]?TER[lie].note:''}`);
   } else if(state==='flying'||state==='rolling') lieEl.textContent='Ball in motion';
+  if(EV&&EV.range) rangeHud();
 }
 function renderRack(){
   $('#rack').innerHTML=CLUBS.map((c,i)=>{ const e=eff(i); return `<button type="button" class="club${i===clubIdx?' active':''}" data-i="${i}" aria-pressed="${i===clubIdx}" title="${e.sig?e.sig.name:TIERS[e.tier]+' '+c.name} (${i+1})">${i===autoIdx?'<span class="auto">AUTO</span>':''}<b>${c.name}</b><small>${c.putt?(e.sig?e.sig.short:TIERS[e.tier]):Math.round(e.total*YPP)+' yds'}</small></button>`; }).join('');

@@ -23,13 +23,15 @@ cv.addEventListener('pointerup',e=>{ if(!aim || e.pointerId!==aim.id) return; co
 cv.addEventListener('pointercancel',()=>{ aim=null; });
 $('#viewBtn').onclick=()=>{ if(state==='ready'){ setOverview(!overview); } else if(state==='intro') endIntro(); };
 $('#boardBtn').onclick=showBoard;
+$('#cardBtn').onclick=()=>showScorecard();
 $('#soundBtn').onclick=toggleSound;
 window.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ if(aim) aim=null; else if(sheetKind==='board') closeSheet(); return; }
+  if(e.key==='Escape'){ if(aim) aim=null; else if(sheetKind==='board'||sheetKind==='card') closeSheet(); return; }
   if(!overlay.hidden) return;
   if(e.key>='1'&&e.key<='4') selectClub(+e.key-1);
   else if(e.key==='v'||e.key==='V'){ if(state==='ready') setOverview(!overview); }
   else if(e.key==='l'||e.key==='L') showBoard();
+  else if(e.key==='c'||e.key==='C') showScorecard();
   else if(e.key==='m'||e.key==='M') toggleSound();
 });
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) Sound.suspend(); else Sound.resume(); });
@@ -58,7 +60,7 @@ function camTarget(){
     const a=aimInfo();
     if(a){ const end=shotEnd(a.dx,a.dy,Math.max(1,a.p)), tl=(a.md*1.3*BAND+40)/cam.z;
       return fitPts([ball, end, {x:ball.x-a.dx*tl, y:ball.y-a.dy*tl}]); }
-    const dx=hole.cup.x-ball.x, dy=hole.cup.y-ball.y, d=Math.hypot(dx,dy)||1;
+    const tg=EV&&EV.range?{x:ball.x,y:ball.y-2000}:hole.cup, dx=tg.x-ball.x, dy=tg.y-ball.y, d=Math.hypot(dx,dy)||1;
     const reach=Math.min(d, eff(clubIdx).total*1.05);
     return fitTwo(ball, {x:ball.x+dx/d*reach, y:ball.y+dy/d*reach});
   }

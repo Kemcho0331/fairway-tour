@@ -85,7 +85,7 @@ function goalPossible(g, e){ const [k,v]=goalKey(g), n=+v, holes=e.pars.length, 
   return ''; }
 // round stats for goals, reset every event
 let RS=null, HS=null;
-function resetRS(){ RS={fw:0,gir:0,pens:0,three:0,chipin:0,longPutt:0,longDrive:0,sandSave:0,run:0,streak:0,birdies:0,eagles:0,bogeys:0}; }
+function resetRS(){ RS={fw:0,gir:0,pens:0,three:0,chipin:0,longPutt:0,longDrive:0,sandSave:0,run:0,streak:0,birdies:0,eagles:0,bogeys:0,ledAll:true,maxDef:0}; }
 function resetHS(){ HS={putts:0,gir:false,sand:false,from:null,club:-1,lie:null,pen:false}; }
 // returns {done, failed, prog}
 function goalCheck(g, final, res){ const [k,v]=goalKey(g), n=+v, R=RS||{};
@@ -192,7 +192,7 @@ function sponsorsAfterEvent(res){
     html+=`<div class="gline ok" style="--spc:${s.color}"><b>${s.name}</b> ${goalText(g)} · <span>Goal complete</span></div>`;
     const set=s.sets[st.set];
     if(set && set.goals.every(x=>st.done.includes(x))){
-      const rank=st.set; unlockItem(set.item); st.set++; st.done=[]; Sound.cheer(0.8);
+      const rank=st.set; unlockItem(set.item); st.set++; st.done=[]; Sound.cheer(0.8); save.stats.setsDone=(save.stats.setsDone||0)+1; if(rank===3) save.stats.legends=(save.stats.legends||0)+1;
       const it=ITEMS[set.item];
       html+=`<div class="season" style="--sc:${s.color}"><div class="season-top"><span>${s.name}</span><span>${RANKS[rank]} set complete</span></div><span class="season-name">${it.name}</span><span class="season-blurb">${it.desc?it.desc+' ':''}${KIND_WHERE[it.kind]}${st.set<4?` Next up: the ${RANKS[st.set]} set.`:' That completes the contract.'}</span></div>`;
     }

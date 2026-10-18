@@ -52,9 +52,9 @@ function natJoin(p, notes){
   save.nat.field.push(p);
   const di=(save.nemDormant||[]).findIndex(d=>d.name===p.name);
   if(di>=0){ const d=save.nemDormant[di];
-    if(!nem()){ save.nemDormant.splice(di,1); save.nem={name:d.name, persona:d.persona, w:d.w, l:d.l, year:d.year};
+    if(!nem()){ save.stats.reunions=(save.stats.reunions||0)+1; save.nemDormant.splice(di,1); save.nem={name:d.name, persona:d.persona, w:d.w, l:d.l, year:d.year};
       notes.push(`<div class="nemq"><span class="nemtag">Nemesis</span> <b>${esc(p.name)}</b> is back as ${stateName(p.st)}'s champion, and still remembers you. Head to head ${d.w}-${d.l}.</div>`); return; } }
-  if((save.nemPast||[]).some(x=>x.name===p.name)) notes.push(`<div class="career">Old rival <b>${esc(p.name)}</b> made it to the National Tour as ${stateName(p.st)}'s champion.</div>`);
+  if((save.nemPast||[]).some(x=>x.name===p.name)){ save.stats.reunions=(save.stats.reunions||0)+1; } if((save.nemPast||[]).some(x=>x.name===p.name)) notes.push(`<div class="career">Old rival <b>${esc(p.name)}</b> made it to the National Tour as ${stateName(p.st)}'s champion.</div>`);
 }
 // any rival leaving the National field who is your nemesis waits in the wings instead of vanishing
 function natLeave(p){

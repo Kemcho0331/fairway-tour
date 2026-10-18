@@ -34,6 +34,7 @@ js/golfer.js      the golfer and swing animation
 js/play.js        shots, ball physics, scoring, HUD
 js/ui.js          clubhouse tabs and all menus
 js/loop.js        input, camera, weather, drawing, frame loop
+js/achievements.js  54 achievements, popups, and the Career tab list
 js/main.js        starts the game
 ```
 
@@ -72,6 +73,7 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - Majors on the Pro and National tours are two rounds on the same course with new pins; only the top half and ties make the cut, and a missed cut pays nothing
 - Tension music on the final hole of a major, built from that season's own chords with a heartbeat underneath
 - National sponsors: Summit Outfitters and Keystone Golf Works, with a $100,000 endorsement, the best ball in the game, and a Pro-level signature iron with no drawback
+- 54 achievements across shots, rounds, career, rivals, gear, and travel, with popups and a full list in the Career tab
 - A 1,000-point Hall of Fame earned only on the National Tour, with an induction ceremony, a wall of legends, and rare rival inductees
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
 - A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
@@ -81,6 +83,5 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 
 ## Roadmap
 
-- Achievements
 - Driving range, free practice, and a scorecard button
 - New Game+

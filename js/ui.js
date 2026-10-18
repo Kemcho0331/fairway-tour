@@ -8,7 +8,7 @@ function closeSheet(){ overlay.hidden=true; sheetKind=null; }
 function careerLine(){ const s=save.stats; if(!s.events) return ''; return `<div class="career">Career: ${s.events} event${s.events===1?'':'s'} · ${s.wins} win${s.wins===1?'':'s'} · best round ${fmtPar(s.best)} · ${s.birdies} birdies or better${s.hio?` · ${s.hio} hole${s.hio===1?'':'s'} in one`:''} · ${money(s.earnings)} earned</div>`; }
 
 function showHub(keepScroll){
-  Sound.setTension(false); state='menu'; updateHud(); $('#rack').innerHTML='';
+  Sound.setTension(false); state='menu'; updateHud(); $('#rack').innerHTML=''; checkAch(); achNew=[];
   const tabs=[['tour','Tour'],['standings','Points'],['career','Career'],['golfer','Golfer'],['shop','Shop']];
   const head=`
     <div class="sheet-head">
@@ -170,7 +170,7 @@ function showHoleSheet(i,score){
 }
 function playCurrent(){
   EV=currentEvent(); Sound.init();
-  EV._owed=Math.max(0, EV.fee-save.cash); save.cash=Math.max(0, save.cash-EV.fee); persist();
+  EV._owed=Math.max(0, EV.fee-save.cash); if(EV._owed>0) save.stats.credits=(save.stats.credits||0)+1; save.cash=Math.max(0, save.cash-EV.fee); persist(); checkAch();
   closeSheet(); newTournament(); beginIntro();
 }
 function newYear(){ const c=career(); c.year++; c.k=0; c.phase='season'; c.pts={}; c.wins={}; c.played={}; }
@@ -197,7 +197,7 @@ function yearEnd(){
     const rows=tableRows(), poy=rank===1, keep=rank<=10, st=save.stats;
     st.natYears=(st.natYears||0)+1;
     if(poy){ st.npoy=(st.npoy||0)+1; addTrophy('npoy','National Player of the Year','poy'); addHof(ME,HOF_PTS.poy); }
-    if(keep) addHof(ME,HOF_PTS.card);
+    if(keep){ addHof(ME,HOF_PTS.card); st.cardsKept=(st.cardsKept||0)+1; }
     const churn=natYearEnd(rows);
     if(!keep) c.tier=3;
     newYear();
@@ -252,6 +252,10 @@ function finishEvent(wd, mc){
   if(season().id!==prevSeason && kind==='season' && c.phase==='season'){ Sound.setSeason(season().id); note+=`<div class="season" style="--sc:${season().color}"><div class="season-top"><span>Season change</span><span>${tierDef().name}</span></div><span class="season-name">${season().name} is here</span><span class="season-blurb">${season().blurb}</span></div>`; }
   else if(season().id!==prevSeason) Sound.setSeason(season().id);
   persist();
+  if(!wd){ s.sets=s.sets||{}; s.sets[EV.set]=1; }
+  if(!out && RS){ if(RS.bogeys===0 && HOLES.length>=6) s.cleanCards=(s.cleanCards||0)+1; if(RS.pens===0 && HOLES.length>=9) s.dryNines=(s.dryNines||0)+1;
+    if(champ){ s.seasonWins=s.seasonWins||{}; s.seasonWins[prevSeason]=1; if(RS.ledAll) s.wires=(s.wires||0)+1; if(RS.maxDef>=3) s.comebacks=(s.comebacks||0)+1; } }
+  checkAch(false,true); const achNote=achResultsHTML(); persist();
   const rows=tableRows(), rk=rows.findIndex(x=>x.you)+1;
   openSheet('results',`
     <div class="sheet-head">
@@ -260,7 +264,7 @@ function finishEvent(wd, mc){
       <span class="head-sub">${wd?'No points or prize money':mc?`${fmtPar(totals[0]-1000)} after round 1 · no points or prize money`:`${playerScores.reduce((a,b)=>a+b,0)} strokes · ${fmtPar(totals[0])}${tied&&myPos===1?' · a tie does not count as a win':''}`}</span>
     </div>
     <div class="sheet-body">
-      ${note}${nemNote}${spNote}
+      ${note}${nemNote}${spNote}${achNote}
       <div class="facts">
         <div><span class="lbl">Prize</span><b>${money(net)}</b></div>
         <div><span class="lbl">${kind==='q'?'Bank':'Points'}</span><b>${kind==='q'?money(save.cash):'+'+myPts}</b></div>
@@ -299,7 +303,7 @@ function showCut(){
   field.forEach(p=>{ if(!p.you) p.cut=rel(p.scores)>line; });
   const mine=rel(playerScores), made=mine<=line, nm=nem(), np=nm&&field.find(f=>f.name===nm.name);
   if(!made){ EV._mc=true; finishEvent(false,true); return; }
-  const playing=field.filter(p=>p.you||!p.cut).length;
+  const playing=field.filter(p=>p.you||!p.cut).length; save.stats.cutsMade=(save.stats.cutsMade||0)+1; checkAch();
   openSheet('cut',`
     <div class="sheet-head"><span class="kicker">${EV.name} · round 1 complete</span><span class="title gold">Made the cut</span>
       <span class="head-sub">Cut line ${fmtPar(line)} · ${playing} of ${field.length} play round 2 · you are ${fmtPar(mine)}</span></div>

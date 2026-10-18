@@ -92,6 +92,7 @@ function careerTabHTML(){
     ${facts}
     <h3 class="sec">Nemesis</h3>${nemBlock}${past?`<div>${past}</div>`:''}
     <h3 class="sec">Trophy case</h3><div class="trophies">${TROPHY_LIST.map(([k,l,col])=>tro(k,l,col)).join('')}${rivalT}</div>
+    <h3 class="sec">Achievements</h3>${achHTML()}
     <h3 class="sec">Hall of Fame</h3>${hofHTML()}
     <h3 class="sec">Sponsor gear</h3><div>${sponsorGearHTML()}</div>`;
 }

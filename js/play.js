@@ -106,7 +106,7 @@ function hitTree(inAir){
     if(d<rr && d>0.001){
       const nx=dx/d, ny=dy/d; ball.x=t.x+nx*(rr+0.5); ball.y=t.y+ny*(rr+0.5);
       const vn=ball.vx*nx+ball.vy*ny; if(vn<0){ ball.vx-=2*vn*nx; ball.vy-=2*vn*ny; }
-      const k=inAir?0.3:0.5; ball.vx*=k; ball.vy*=k; Sound.thunk(); return true;
+      const k=inAir?0.3:0.5; ball.vx*=k; ball.vy*=k; Sound.thunk(); save.stats.trees=(save.stats.trees||0)+1; return true;
     }
   }
   return false;
@@ -167,13 +167,13 @@ function penalty(kind){
   ball.dropTo=(kind==='water' && hole.drop) ? {x:hole.drop.x, y:hole.drop.y} : null;
   if(kind==='water'){
     Sound.splash(); fx.push({type:'splash',x:ball.x,y:ball.y,t:0});
-    if(save.ball==='duck' && !duckUsed){ duckUsed=true; toast('Lucky Duck! No penalty this time'); }
-    else { strokes++; if(RS){ RS.pens++; HS.pen=true; } toast(ball.dropTo?'Splash! +1. Play from the drop zone':'Splash! +1 penalty stroke'); }
+    if(save.ball==='duck' && !duckUsed){ duckUsed=true; save.stats.ducks=(save.stats.ducks||0)+1; toast('Lucky Duck! No penalty this time'); }
+    else { strokes++; save.stats.splashes=(save.stats.splashes||0)+1; if(RS){ RS.pens++; HS.pen=true; } toast(ball.dropTo?'Splash! +1. Play from the drop zone':'Splash! +1 penalty stroke'); }
   } else { strokes++; if(RS){ RS.pens++; HS.pen=true; } Sound.thunk(); toast('Out of bounds. +1 penalty stroke'); }
   updateHud();
 }
 function holeOut(){
-  if(HS&&RS&&HS.from){ if(HS.lie===GREEN) RS.longPutt=Math.max(RS.longPutt, dist(HS.from,hole.cup)*YPP*3); else RS.chipin++; if(strokes<=hole.par-1) HS.gir=true; HS.from=null; }
+  if(HS&&RS&&HS.from){ if(HS.lie===GREEN) RS.longPutt=Math.max(RS.longPutt, dist(HS.from,hole.cup)*YPP*3); else { RS.chipin++; save.stats.chipins=(save.stats.chipins||0)+1; } if(strokes<=hole.par-1) HS.gir=true; HS.from=null; }
   state='holed'; holedT=1.5; ball.holed=true; ball.x=hole.cup.x; ball.y=hole.cup.y; ball.vx=ball.vy=0; ball.z=0;
   Sound.cup();
   const rel=strokes-hole.par;
@@ -193,6 +193,10 @@ function completeHole(){
   if(rel<=-1) save.stats.birdies++;
   if(RS){ if(HS.gir) RS.gir++; if(HS.putts>=3) RS.three++; if(rel<=-1){ RS.birdies++; RS.run++; RS.streak=Math.max(RS.streak,RS.run); } else RS.run=0; if(rel<=-2) RS.eagles++; if(rel>=1) RS.bogeys++; if(HS.sand&&rel<=0) RS.sandSave++; }
   if(score===1) save.stats.hio++;
+  const S=save.stats; if(rel<=-2) S.eagles=(S.eagles||0)+1; if(rel<=-3) S.albatross=(S.albatross||0)+1; if(score>=8) S.snowmen=(S.snowmen||0)+1;
+  if(RS){ if(HS.sand&&rel<=0) S.sandSaves=(S.sandSaves||0)+1; S.streakBest=Math.max(S.streakBest||0,RS.streak); S.maxPutt=Math.max(S.maxPutt||0,RS.longPutt); S.maxDrive=Math.max(S.maxDrive||0,RS.longDrive);
+    const stn=standings(), me=stn.find(x=>x.you), lead=Math.min(...stn.filter(x=>!x.mc).map(x=>x.tot)), def=me.tot-lead; if(def>0) RS.ledAll=false; RS.maxDef=Math.max(RS.maxDef,def); }
+  checkAch();
   persist(); updateHud(); showHoleSheet(i,score);
 }
 

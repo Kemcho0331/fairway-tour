@@ -47,5 +47,5 @@ function statsHTML(){
 }
 function careerViewHTML(){
   const v=save.careerView||'career', b=(k,l)=>`<button class="tchip sm" type="button" data-cv="${k}" aria-pressed="${v===k}">${l}</button>`;
-  return `<div class="chips">${b('career','Career')}${b('stats','Stats')}</div>${v==='stats'?statsHTML():careerTabHTML()}`;
+  return `<div class="cvbar" role="group" aria-label="Career views">${b('career','Career')}${b('stats','Stats')}${b('trophies','Trophies')}${b('sponsors','Sponsors')}</div>${v==='stats'?statsHTML():v==='trophies'?careerTabHTML('trophies'):v==='sponsors'?sponsorsViewHTML():careerTabHTML()}`;
 }

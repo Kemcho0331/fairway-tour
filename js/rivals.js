@@ -75,7 +75,7 @@ const TROPHY_LIST = [
   ['promo:4','National Tour card','#2f7d4a'], ['major:natamerican','American Championship','#c9a227'], ['major:natopen','The National Open','#c9a227'], ['major:natatlantic','Atlantic Championship','#c9a227'],
   ['champ:4','National Championship','#c9a227'], ['npoy','National Player of the Year','#c9a227'], ['hof','Hall of Fame','#5c4708'],
 ];
-function careerTabHTML(){
+function careerTabHTML(part){
   const s=save.stats, c=career(), n=nem();
   const fact=(l,v)=>`<div><span class="lbl">${l}</span><b>${v}</b></div>`;
   const facts=`<div class="facts facts4">${fact('Events',s.events)}${fact('Wins',s.wins)}${fact('Top 5s',s.top5||0)}${fact('Majors',s.majors||0)}${fact('Earnings',money(s.earnings))}${fact('Best round',s.best===null?'-':fmtPar(s.best))}${fact('Birdies+',s.birdies)}${fact('Aces',s.hio)}</div>`;
@@ -87,14 +87,14 @@ function careerTabHTML(){
   const tro=(key,label,col)=>{ const t=save.trophies[key]; return `<div class="tro ${t?'':'off'}">${CUP(t?col:'#b8c2bb')}<b>${esc(label)}</b><small>${t?`${t.count>1?'×'+t.count+' · ':''}Year ${t.years.join(', ')}`:'Not yet'}</small></div>`; };
   const rivalT=Object.entries(save.trophies).filter(([k])=>k.startsWith('rival:')).map(([k,t])=>tro(k,t.label,'#a8392a')).join('');
   const won=Object.keys(save.trophies).length;
+  // the Trophies view: everything you have won, in one place
+  if(part==='trophies') return `<h3 class="sec">Trophy case · ${won} won</h3><div class="trophies">${TROPHY_LIST.map(([k,l,col])=>tro(k,l,col)).join('')}${rivalT}</div>
+    <h3 class="sec">Achievements</h3>${achHTML()}
+    <h3 class="sec">Hall of Fame</h3>${hofHTML()}`;
   return `<div class="season" style="--sc:var(--pine-2)"><div class="season-top"><span>Career</span><span>Year ${c.year}</span></div><span class="season-name">${tierDef().name}</span>
       <span class="season-blurb">${s.promotions||0} promotion${s.promotions===1?'':'s'} · ${s.poy||0} Player of the Year award${s.poy===1?'':'s'} · ${won} troph${won===1?'y':'ies'}</span></div>
     ${facts}
     <h3 class="sec">Nemesis</h3>${nemBlock}${past?`<div>${past}</div>`:''}
-    <h3 class="sec">Trophy case</h3><div class="trophies">${TROPHY_LIST.map(([k,l,col])=>tro(k,l,col)).join('')}${rivalT}</div>
-    <h3 class="sec">Achievements</h3>${achHTML()}
-    <h3 class="sec">Hall of Fame</h3>${hofHTML()}
-    <h3 class="sec">Sponsor gear</h3><div>${sponsorGearHTML()}</div>
     <h3 class="sec">New Game+</h3>${ngpHTML()}`;
 }
 let EV=null, HOLES=[];

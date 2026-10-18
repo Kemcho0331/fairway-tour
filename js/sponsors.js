@@ -203,10 +203,6 @@ function sponsorSummary(){
   if(!tierSponsors(career().tier).length) return '<div class="field">National sponsors are on the way.</div>';
   return tierSponsors(career().tier).map(s=>{ const st=spState(s.id); return `<div class="spline" style="--spc:${s.color}"><b>${s.name}</b><span>${st.set>=4?'Contract complete':`${RANKS[st.set]} set · ${st.done.length} of ${s.sets[st.set].goals.length} goals`}</span>${spBar(s)}</div>`; }).join('');
 }
-// every sponsor's gear, for the Career tab
-function sponsorGearHTML(){
-  const c=career();
-  return SPONSORS.map(s=>{ const st=spState(s.id), note=s.tier===4&&c.tier===3&&save.nat?'On hold until you return to the National Tour':s.tier>c.tier?`Signs you on the ${TOUR[s.tier].name}`:s.tier===3&&c.tier===4&&st.set<4?'On hold while you play the National Tour':s.tier<c.tier&&st.set<4?'Contract ended when you moved up':s.tier===c.tier?'Current sponsor':'Contract complete';
-    return `<div class="gear"><div class="gear-top" style="--spc:${s.color}"><b>${s.name}</b><small>${TOUR[s.tier].name} · ${note}</small></div>
-      <div class="gear-items">${s.sets.map((x,i)=>{ const got=hasItem(x.item); return `<div class="gi ${got?'':'off'}">${rankChip(i)}<span>${got?'✓ ':''}${itemLabel(x.item)}</span></div>`; }).join('')}</div></div>`; }).join('');
-}
+// a sponsor's contract status, shown on its gear group in Career > Sponsors
+function sponsorNote(s){ const c=career(), st=spState(s.id);
+  return s.tier===4&&c.tier===3&&save.nat?'On hold until you return to the National Tour':s.tier>c.tier?`Signs you on the ${TOUR[s.tier].name}`:s.tier===3&&c.tier===4&&st.set<4?'On hold while you play the National Tour':s.tier<c.tier&&st.set<4?'Contract ended when you moved up':s.tier===c.tier?'Current sponsor':'Contract complete'; }

@@ -33,5 +33,7 @@ const WIRE_COL = {Result:'var(--pine-2)', Rivalry:'var(--under)', Gossip:'#8a5a2
 function wireHTML(){
   const w=(save.wire||[]).slice(0,6);
   if(!w.length) return `<h3 class="sec">Tour Wire</h3><div class="field">News from around the tour shows up here after each event.</div>`;
-  return `<h3 class="sec">Tour Wire</h3><div class="wire">${w.map(p=>`<div class="wpost"><span class="wtag" style="--wc:${WIRE_COL[p.tag]||'var(--ink)'}">${p.tag}</span><span>${esc(p.text)}</span><small>Year ${p.y} · ${TOUR[p.t]?TOUR[p.t].name:''}</small></div>`).join('')}</div>`;
+  // folded by default to the newest headline; tap to read the whole feed (it remembers)
+  return `<details class="wirebox" id="wireBox" ${save.wireOpen?'open':''}><summary><span class="wire-h">Tour Wire</span><span class="wire-new"><span class="wtag" style="--wc:${WIRE_COL[w[0].tag]||'var(--ink)'}">${w[0].tag}</span><span class="wire-txt">${esc(w[0].text)}</span></span></summary>
+    <div class="wire">${w.map(p=>`<div class="wpost"><span class="wtag" style="--wc:${WIRE_COL[p.tag]||'var(--ink)'}">${p.tag}</span><span>${esc(p.text)}</span><small>Year ${p.y} · ${TOUR[p.t]?TOUR[p.t].name:''}</small></div>`).join('')}</div></details>`;
 }

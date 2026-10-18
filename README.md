@@ -58,7 +58,7 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - Pro shop with four club tiers, special balls, and ball colors
 - Sponsors on every tier (two on the Challenger and Pro Tours): pick one goal per sponsor before each event, clear a Bronze, Silver, Gold, or Legendary set of goals, and earn that sponsor's exclusive gear
 - Signature clubs from sponsors, fixed to the tier they come from, each with a specialty and a drawback; swap them into your bag in place of your shop clubs
-- Sponsor-only cosmetics: striped polos, hat and pants colors, ball colors, and a gold watch, all listed in the shop with the sponsor that awards each one, sortable by type, sponsor, or level
+- Sponsor-only cosmetics: striped polos, hat and pants colors, ball colors, and a gold watch, all listed in Career, under Sponsors, with the sponsor that awards each one and your contract status, sortable by type, sponsor, or level
 - Your sponsor goals show on the in-round leaderboard with live progress
 - Sloped greens with break arrows, plus tiered greens with steps between levels
 - A realistic cup: a dead-center putt only drops if it would have stopped about 12 feet past, chips get even less, and off-center balls lip out
@@ -84,15 +84,15 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - A driving range with yardage lines and target flags: hit from the tee, fairway, rough, or a bunker, choose the wind, and see carry, total, and line for your last 12 shots with per-club averages
 - Free practice on any course you have reached, with no fee, field, or points, and nothing counting toward stats
 - A scorecard button during rounds, with birdie circles and bogey squares, both rounds of a major, and your nemesis's card
-- Shot shaping you earn: pay a coach for Shot School lessons (Low and High on the Mini-Tour, Draw and Fade on the Challenger Tour, the Nine-Shot Exam on the Pro Tour), pass a drill at the range to unlock each shot, then build mastery from Learning to Solid to Mastered by using it
+- Shot shaping you earn: pay a coach for Shot School lessons in the Shop (Low and High on the Mini-Tour, Draw and Fade on the Challenger Tour, the Nine-Shot Exam on the Pro Tour), pass a drill at the range to unlock each shot, then build mastery from Learning to Solid to Mastered by using it
 - Shaped shots bend the aim line, with a wider band while you are still learning; low shots stay under the wind and branches, high shots stop fast, draws run out, fades land soft, and Learning shots wobble more on the last hole of a major
 - A Stats view in the Career tab: scoring per hole, fairways, greens in regulation, putts, scrambling, sand saves, 3-putts, driving average, scoring by par, a scoring trend chart, and a breakdown of every hole you have played
 - A daily challenge: one 6-hole course a day from any setting, the same five rivals for everyone, best score and streak tracked, and nothing touching your career
-- The Tour Wire: a news feed in the clubhouse with results, nemesis trash talk, moves between tours, Hall of Fame inductions, and tour gossip
+- The Tour Wire: a news feed on the Tour tab, folded to the newest headline until you open it, with results, nemesis trash talk, moves between tours, Hall of Fame inductions, and tour gossip
 - New Game+ after you become Texas Champion: start over on the Amateur tour with your look, cosmetics, and achievements, against sharper rivals on every tour, with past careers saved in the Career tab
 - A 1,000-point Hall of Fame earned only on the National Tour, with an induction ceremony, a wall of legends, and rare rival inductees
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
-- A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
+- A Career tab with four views: Career (summary, nemesis, New Game+), Stats, Trophies (trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries, plus achievements and the Hall of Fame), and Sponsors (your sponsors and all their gear)
 - Generated music and sound effects
 - Customizable golfer with a name, skin tone, shirt, pants, hat, and right- or left-handed swing
 - The golfer is a 3D body drawn with smooth shading: from his trail side on the course, looking up the hole, and face-on in the Golfer tab

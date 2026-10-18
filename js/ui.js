@@ -28,6 +28,7 @@ function showHub(keepScroll){
   sheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>buyColor(b.dataset.color));
   sheet.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.g.split(':'); save.golfer[k]=k==='skin'?+v:k==='watch'?!!v:v; persist(); Sound.tick(); showHub(true); });
   wireBag(()=>showHub(true)); wireSchool(); wireBackup();
+  const wb=$('#wireBox'); if(wb) wb.ontoggle=()=>{ if(!!save.wireOpen!==wb.open){ save.wireOpen=wb.open; persist(); } };
   sheet.querySelectorAll('[data-cv]').forEach(b=>b.onclick=()=>{ save.careerView=b.dataset.cv; persist(); Sound.tick(); showHub(); });
   const gn=$('#gname'); if(gn) gn.oninput=()=>{ save.golfer.name=gn.value.slice(0,16); persist(); };
   const st=$('#soundToggle'); if(st) st.onclick=()=>{ toggleSound(); st.textContent=Sound.muted?'Sound off':'Sound on'; };
@@ -102,8 +103,6 @@ function golferHTML(){
   const shirts=LOOK.shirts.filter(x=>ok(x,'shirt')), hats=LOOK.shirts.filter(x=>ok(x,'hat')), pants=LOOK.pants.filter(x=>ok(x,'pants'));
   return `<div class="golfer-wrap"><canvas id="gprev" width="300" height="300" aria-label="Your golfer taking a practice swing"></canvas>
       <div class="name-field"><label class="lbl" for="gname">Name on the leaderboard</label><input id="gname" type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="You" value="${esc(g.name||'')}"><small>Leave blank to show up as "You."</small></div></div>
-    <h3 class="sec">Your bag</h3>${bagHTML()}
-    <h3 class="sec">Shot School</h3>${shotSchoolHTML()}
     <h3 class="sec">Look</h3>
     <div class="opt"><span class="lbl">Swings</span><div class="chips"><button class="tchip" type="button" data-g="hand:R" aria-pressed="${g.hand!=='L'}">Right-handed</button><button class="tchip" type="button" data-g="hand:L" aria-pressed="${g.hand==='L'}">Left-handed</button></div></div>
     <div class="opt"><span class="lbl">Skin tone</span><div class="chips">${chips('skin',LOOK.skins,g.skin)}</div></div>
@@ -112,7 +111,8 @@ function golferHTML(){
     <div class="opt"><span class="lbl">Hat</span><div class="chips">${chips('hat',LOOK.hats,g.hat,true)}</div></div>
     ${g.hat!=='none'?`<div class="opt"><span class="lbl">Hat color</span><div class="chips">${chips('hatColor',hats,g.hatColor)}</div></div>`:''}
     ${hasItem('capwatch')?`<div class="opt"><span class="lbl">Capitol Chronograph</span><div class="chips"><button class="tchip" type="button" data-g="watch:1" aria-pressed="${!!g.watch}">On</button><button class="tchip" type="button" data-g="watch:" aria-pressed="${!g.watch}">Off</button></div></div>`:''}
-    <div class="career">Gold-ringed swatches are sponsor exclusives. Earn more in the Career tab's sponsor gear list.</div>
+    <div class="career">Gold-ringed swatches are sponsor exclusives. See what you can earn in Career, under Sponsors.</div>
+    <h3 class="sec">Your bag</h3>${bagHTML()}
     <h3 class="sec">Save backup</h3>${backupHTML()}`;
 }
 function pips(t){ return `<span class="pips" aria-label="Tier ${t} of 4">${[1,2,3,4].map(k=>`<i class="${k<=t?'on':''}"></i>`).join('')}</span>`; }
@@ -128,8 +128,13 @@ function shopHTML(){
   return `<h3 class="sec">Clubs</h3><div>${clubs}</div>
     <h3 class="sec">Balls</h3><div>${balls}</div>
     <h3 class="sec">Ball colors</h3><div class="swatches">${colors}</div>
-    <h3 class="sec">Sponsor exclusives</h3><div class="career" style="border:0;padding:0">Not for sale. Clear a sponsor's goal set to earn each one.</div>${shopExclHTML()}`;
+    <h3 class="sec">Shot School</h3>${shotSchoolHTML()}
+    <div class="career">Sponsor gear is not for sale. See what each sponsor gives out in Career, under Sponsors.</div>`;
 }
+// Career > Sponsors: who you are signed with, then every piece of sponsor gear in one list
+function sponsorsViewHTML(){ const n=tierSponsors(career().tier).length;
+  return `<h3 class="sec">${n>1?'Your sponsors':'Your sponsor'}</h3><div>${sponsorSummary()}</div>
+    <h3 class="sec">Sponsor gear</h3><div class="career" style="border:0;padding:0">Not for sale. Pick a goal for each sponsor before every event, and clear a goal set to earn its gear.</div>${shopExclHTML()}`; }
 function shopExclHTML(){
   const src={}; SPONSORS.forEach(s=>s.sets.forEach((x,i)=>src[x.item]={s,rank:i}));
   const KIND={color:'Ball color', ball:'Ball', club:'Signature club', shirt:'Polo', hat:'Hat color', pants:'Pants', watch:'Watch'};
@@ -140,7 +145,7 @@ function shopExclHTML(){
     if(k==='ball') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#c4cac2)"></span>`;
     if(k==='watch') return `<span class="xprev" style="border-radius:50%;background:radial-gradient(circle,#fbf0c6 0 42%,#c9a227 44% 70%,transparent 72%)"></span>`;
     return `<span class="xprev xclub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3 9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M9 17c-1 2-3 3.5-5.5 3.5-.8 0-1-.9-.3-1.3L8 16.5z" fill="currentColor"/></svg></span>`; };
-  const mode=save.exclSort||'type';
+  const mode=save.exclSort||'sponsor';
   const row=([id,it])=>{ const {s,rank}=src[id], own=hasItem(id);
     return `<div class="item xitem ${own?'':'locked'}">${prev(it)}<div class="item-main"><span class="item-name">${it.name}${it.kind==='club'?` <span class="tier t${it.tier}">${TIERS[it.tier]}</span>`:''}</span><span class="item-desc">${it.desc||KIND[it.kind]}</span></div>
       <div class="xsrc">${own?'<b class="owned">Owned</b>':mode==='sponsor'?'':`<b style="color:${s.color}">${s.name}</b>`}<small>${rankChip(rank)} ${TOUR[s.tier].name}</small></div></div>`; };
@@ -148,11 +153,11 @@ function shopExclHTML(){
   const head=(label,col,count)=>`<div class="xgroup" style="--gc:${col}"><b>${label}</b><small>${count}</small></div>`;
   const got=list=>`${list.filter(([id])=>hasItem(id)).length} of ${list.length} earned`;
   let groups;
-  if(mode==='sponsor') groups=SPONSORS.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(sp=>[sp.name, sp.color, all.filter(([id])=>src[id].s===sp).sort((a,b)=>src[a[0]].rank-src[b[0]].rank)]);
+  if(mode==='sponsor') groups=SPONSORS.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(sp=>[sp.name, sp.color, all.filter(([id])=>src[id].s===sp).sort((a,b)=>src[a[0]].rank-src[b[0]].rank), sponsorNote(sp)]);
   else if(mode==='level') groups=[3,2,1,0].map(r=>[RANKS[r], RANK_COL[r], all.filter(([id])=>src[id].rank===r).sort((a,b)=>src[a[0]].s.tier-src[b[0]].s.tier||src[a[0]].s.name.localeCompare(src[b[0]].s.name))]);
   else groups=[['Signature clubs',['club']],['Sponsor balls',['ball']],['Ball colors',['color']],['Apparel',['shirt','hat','pants','watch']]].map(([l,ks])=>[l,'var(--pine-2)',all.filter(([,it])=>ks.includes(it.kind)).sort(byTour)]);
-  const bar=`<div class="xsort" role="group" aria-label="Sort sponsor exclusives"><span class="lbl">Sort by</span>${[['type','Type'],['sponsor','Sponsor'],['level','Level']].map(([k,l])=>`<button class="tchip sm" type="button" data-xsort="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>`;
-  return bar+groups.map(([l,col,list])=>head(l,col,got(list))+list.map(row).join('')).join('');
+  const bar=`<div class="xsort" role="group" aria-label="Sort sponsor gear"><span class="lbl">Sort by</span>${[['type','Type'],['sponsor','Sponsor'],['level','Level']].map(([k,l])=>`<button class="tchip sm" type="button" data-xsort="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>`;
+  return bar+groups.map(([l,col,list,note])=>head(l,col,(note?note+' · ':'')+got(list))+list.map(row).join('')).join('');
 }
 function buyUpgrade(id){ const t=save.gear[id]||0, price=UPGRADES[id].prices[t]; if(t>=4||save.cash<price) return; save.cash-=price; save.gear[id]=t+1; persist(); Sound.coin(); toast(`${TIERS[t+1]} ${CLUBS.find(c=>c.id===id).name} in the bag`); showHub(true); }
 function buyBall(id){ const b=BALLS.find(x=>x.id===id); if(!save.ballsOwned.includes(id)){ if(save.cash<b.price) return; save.cash-=b.price; save.ballsOwned.push(id); Sound.coin(); toast(`Bought ${b.name}`); } else Sound.tick(); save.ball=id; persist(); showHub(true); }

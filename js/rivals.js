@@ -14,7 +14,7 @@ const PERSONAS = {
 };
 const SETTLE_WINS = 5;
 // the Pro Tour's best can climb past everyone else, and the field sharpens every year after you become Texas Champion
-const fieldHeat = t => t===3 ? (save.proHeat||0) : 0;
+const fieldHeat = t => (t===3 ? (save.proHeat||0) : 0) + Math.min(3, save.ngp||0)*0.03;
 const skillCap = t => t===3 ? 1.03+fieldHeat(t) : t===4 ? 1.15 : 0.97;
 const HEAT_STEP = 0.015, HEAT_MAX = 0.09;
 const nem = () => save.nem || null;
@@ -94,6 +94,7 @@ function careerTabHTML(){
     <h3 class="sec">Trophy case</h3><div class="trophies">${TROPHY_LIST.map(([k,l,col])=>tro(k,l,col)).join('')}${rivalT}</div>
     <h3 class="sec">Achievements</h3>${achHTML()}
     <h3 class="sec">Hall of Fame</h3>${hofHTML()}
-    <h3 class="sec">Sponsor gear</h3><div>${sponsorGearHTML()}</div>`;
+    <h3 class="sec">Sponsor gear</h3><div>${sponsorGearHTML()}</div>
+    <h3 class="sec">New Game+</h3>${ngpHTML()}`;
 }
 let EV=null, HOLES=[];

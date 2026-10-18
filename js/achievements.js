@@ -48,6 +48,7 @@ const ACH = [
   ['npoy','Career','Best in the Country','Win National Player of the Year.', ()=>(st().npoy||0)>=1],
   ['millionaire','Career','Millionaire','Earn $1,000,000 in prize money.', ()=>st().earnings>=1000000],
   ['hof','Career','Immortal','Get inducted into the Hall of Fame.', ()=>!!save.hofIn],
+  ['ngplus','Career','Second Wind','Start a New Game+.', ()=>(save.ngp||0)>=1],
   ['nemesis','Rivals',"It's Personal",'Gain a nemesis.', ()=>!!save.nem || (save.nemPast||[]).length>0 || (save.nemDormant||[]).length>0],
   ['settle','Rivals','Rivalry Settled','Settle a rivalry.', ()=>(save.nemPast||[]).length>=1],
   ['settle3','Rivals','Grudge Collector','Settle three rivalries.', ()=>(save.nemPast||[]).length>=3],

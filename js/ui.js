@@ -13,7 +13,7 @@ function showHub(keepScroll){
   const head=`
     <div class="sheet-head">
       <div class="head-row">
-        <div style="display:flex;flex-direction:column;gap:6px"><span class="kicker">Clubhouse · ${tierDef().name}</span><span class="title">Fairway Tour</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span class="kicker">Clubhouse · ${tierDef().name}${save.ngp?` · NG+${save.ngp}`:''}</span><span class="title">Fairway Tour</span></div>
         <div class="bank"><span>Bank</span><b>${money(save.cash)}</b></div>
       </div>
       <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${hubTab===k}">${l}</button>`).join('')}</div>
@@ -21,7 +21,7 @@ function showHub(keepScroll){
   const body=hubTab==='tour'?tourHTML():hubTab==='standings'?standingsHTML():hubTab==='career'?careerTabHTML():hubTab==='golfer'?golferHTML():shopHTML();
   openSheet('hub', head + `<div class="sheet-body">${body}</div>`, null, keepScroll);
   sheet.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ if(hubTab!==b.dataset.tab){ hubTab=b.dataset.tab; Sound.tick(); showHub(); } });
-  sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='range') startRange(); else if(a==='practice') showPracticePicker(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
+  sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='ngp') ngpTap(b); else if(a==='range') startRange(); else if(a==='practice') showPracticePicker(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
   sheet.querySelectorAll('[data-xsort]').forEach(b=>b.onclick=()=>{ save.exclSort=b.dataset.xsort; persist(); Sound.tick(); showHub(true); });
   sheet.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUpgrade(b.dataset.up));
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));

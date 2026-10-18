@@ -9,7 +9,7 @@ function careerLine(){ const s=save.stats; if(!s.events) return ''; return `<div
 
 function showHub(keepScroll){
   Sound.setTension(false); state='menu'; updateHud(); $('#rack').innerHTML=''; checkAch(); achNew=[];
-  const tabs=[['tour','Tour'],['standings','Points'],['career','Career'],['golfer','Golfer'],['shop','Shop']];
+  const tabs=[['tour','Tour'],['standings','Table'],['career','Career'],['golfer','Golfer'],['shop','Shop']];
   const head=`
     <div class="sheet-head">
       <div class="head-row">

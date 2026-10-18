@@ -106,8 +106,8 @@ function drawWeather(){
 function update(dt){
   time+=dt;
   if(state==='intro'){ introT-=dt; if(introT<=0) endIntro(); }
-  else if(state==='flying') stepFlight(dt);
-  else if(state==='rolling') stepRoll(dt);
+  else if(state==='flying'){ if(!swingHolding()) stepFlight(dt); }
+  else if(state==='rolling'){ if(!swingHolding()) stepRoll(dt); }
   else if(state==='holed'){ holedT-=dt; if(ball.holed) ball.sink=Math.min(1,ball.sink+dt*3); if(holedT<=0) completeHole(); }
   else if(state==='penalty'){ penT-=dt; if(penT<=0){ const to=ball.dropTo||lastPos; ball.hidden=false; ball.x=to.x; ball.y=to.y; ball.dropTo=null; stopped(); } }
   fx.forEach(f=>f.t+=dt*1.2); fx=fx.filter(f=>f.t<1);

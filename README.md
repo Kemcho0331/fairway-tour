@@ -30,7 +30,7 @@ js/clubs.js       effective club stats
 js/audio.js       music and sound effects
 js/holes.js       terrain map, trees, the painted course
 js/scenery.js     Texas scenery past the out-of-bounds stakes
-js/golfer.js      the golfer and swing animation
+js/golfer.js      the golfer, drawn face-on, and the pendulum swing
 js/play.js        shots, ball physics, scoring, HUD
 js/ui.js          clubhouse tabs and all menus
 js/loop.js        input, camera, weather, drawing, frame loop
@@ -94,5 +94,6 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry
 - A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
 - Generated music and sound effects
-- Customizable golfer with a name, skin tone, shirt, pants, and hat, plus a full swing animation
+- Customizable golfer with a name, skin tone, shirt, pants, and hat, drawn face-on with smooth shading
+- A pendulum swing: the backswing follows your drag, the club lags and whips through the ball with a swoosh, and the body turns into a balanced finish; putts get a short rock from the shoulders
 - Progress saves in the browser (localStorage); the Golfer tab can copy your career as a save code and load one, for backups or moving between your phone and computer

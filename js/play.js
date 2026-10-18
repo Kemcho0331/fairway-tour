@@ -80,7 +80,7 @@ function shoot(dx,dy,p){
   const spread=(TER[lie]?TER[lie].spread:1)*e.spread*(e.putt?0.25:1)*(0.6+pc*0.6);
   const ang=Math.atan2(dy,dx)+(Math.random()*2-1)*spread*Math.PI/180;
   const ux=Math.cos(ang), uy=Math.sin(ang), lf=lieFactor(e,lie), pt=eff(3);
-  swing.phase='down'; swing.t=0; swing.from=swing.cur; swing.to=G_A0-(e.putt?0.9:2.5);
+  swing.phase='down'; swing.t=0; swing.from=Math.max(e.putt?0.25:0.15, Math.min(1.1,p));
   ball.trail=[]; ball.lipped=false; ball.capture=pt.capture*(e.putt?1:0.7); ball.pull=pt.pull; ball.windMult=e.wind; ball.keep=e.keep||1; ball.cax=0; ball.cay=0; ball.curveMsg=null; ball.landAt=null; ball.poleX=null; ball.brk=e.putt?(e.brk||1):1;
   if(e.putt){
     const v=e.v*p*lf*(1+clamp(gauss(),-2.5,2.5)*e.speedErr); ball.vx=ux*v; ball.vy=uy*v; ball.z=0; state='rolling'; Sound.putt(p); resetShotSel(); ball.lowFlight=false;

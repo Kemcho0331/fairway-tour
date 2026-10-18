@@ -74,6 +74,7 @@ function natYearEnd(rows){
   rows.forEach((r,i)=>{ if(r.you) return; if(i===0) addHof(r.n, HOF_PTS.poy); if(i<10) addHof(r.n, HOF_PTS.card); });
   // rivals who reach the Hall retire
   for(const p of save.nat.field.slice()){ if((save.nat.hof[p.name]||0)>=HOF_TARGET){ save.hofList=(save.hofList||[]).concat([{name:p.name, st:p.st, year:c.year}]); natLeave(p);
+    wirePost('Hall of Fame', `${p.name} of ${stateName(p.st)} is inducted into the Hall of Fame.`);
     notes.push(`<div class="season" style="--sc:#5c4708"><div class="season-top"><span>Hall of Fame</span><span>Year ${c.year}</span></div><span class="season-name">${esc(p.name)} is inducted</span><span class="season-blurb">${stateName(p.st)}'s champion retires into the Hall of Fame. Very few ever make it.</span></div>`); } }
   // bottom six are replaced
   rows.slice(10).forEach(r=>{ if(r.you) return; const p=save.nat.field.find(x=>x.name===r.n); if(p) natLeave(p); });
@@ -95,6 +96,7 @@ function texasWinnerUp(name){
   const low=save.nat.field.slice().sort((a,b)=>a.skill-b.skill)[0]; if(low) natLeave(low);
   const pro=TOUR[3].roster.find(x=>x[0]===name), notes=[];
   natJoin({name, st:'TX', skill:Math.max(natDraw(), pro?Math.min(1.08,pro[1]+TOUR[3].boost+0.02):0.98)}, notes);
+  wirePost('Tour', `${name} wins Texas Player of the Year and moves up to the National Tour.`);
   return `<div class="career">${esc(name)} won Texas Player of the Year and moves up to the National Tour.</div>`+notes.join('');
 }
 function moveToNational(){

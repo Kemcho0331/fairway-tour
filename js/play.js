@@ -19,7 +19,7 @@ function rivalScore(par, skill, diff, form, persona){
   return par+Math.min(3,rel);
 }
 function newTournament(){
-  if(EV.practice){ HOLES=EV.holes; field=[{name:'You',you:true}]; playerScores=[]; duckUsed=false; resetRS(); HOLES.forEach(h=>setPin(h, h.pins[(Math.random()*h.pins.length)|0])); startHole(0); return; }
+  if(EV.practice){ HOLES=EV.holes; field=[{name:'You',you:true}].concat(EV._ghosts||[]); playerScores=[]; duckUsed=false; resetRS(); HOLES.forEach(h=>setPin(h, h.pins[(Math.random()*h.pins.length)|0])); startHole(0); return; }
   HOLES=EV.rounds===2?EV.holes.concat(EV.holes):EV.holes; EV._mc=false;
   const rt = EV.kind==='q' ? Math.min(3,EV.tier+1) : EV.tier, full=tierRoster(rt), n=nem();
   const ros = EV.kind==='champ' ? tableRows().filter(r=>!r.you).slice(0,5).map(r=>full.find(x=>x[0]===r.n)) : full;
@@ -52,7 +52,7 @@ function beginIntro(){
 }
 function endIntro(){ $('#banner').classList.remove('show'); setOverview(false); setReady(); }
 function trackLie(){ if(!HS||!RS||strokes===0||!HS.from) return; const lie=terrainAt(ball.x,ball.y);
-  if(!HS.pen){ if(HS.club===0) RS.longDrive=Math.max(RS.longDrive, dist(HS.from,ball)*YPP); if(strokes===1 && hole.par>3 && lie===FAIR) RS.fw++; }
+  if(!HS.pen){ if(HS.club===0) RS.longDrive=Math.max(RS.longDrive, dist(HS.from,ball)*YPP); if(strokes===1 && HS.club===0 && hole.par>3 && live()) statsDrive(dist(HS.from,ball)*YPP); if(strokes===1 && hole.par>3 && lie===FAIR){ RS.fw++; HS.fw=true; } }
   if(lie===GREEN && strokes<=hole.par-2) HS.gir=true;
   if(lie===SAND||lie===POT) HS.sand=true;
   HS.from=null; }
@@ -202,7 +202,7 @@ function completeHole(){
   const S=live()?save.stats:{}; if(rel<=-2) S.eagles=(S.eagles||0)+1; if(rel<=-3) S.albatross=(S.albatross||0)+1; if(score>=8) S.snowmen=(S.snowmen||0)+1;
   if(RS){ if(HS.sand&&rel<=0) S.sandSaves=(S.sandSaves||0)+1; S.streakBest=Math.max(S.streakBest||0,RS.streak); S.maxPutt=Math.max(S.maxPutt||0,RS.longPutt); S.maxDrive=Math.max(S.maxDrive||0,RS.longDrive);
     const stn=standings(), me=stn.find(x=>x.you), lead=Math.min(...stn.filter(x=>!x.mc).map(x=>x.tot)), def=me.tot-lead; if(def>0) RS.ledAll=false; RS.maxDef=Math.max(RS.maxDef,def); }
-  if(live()) checkAch();
+  if(live()){ statsHole(HOLES[i].par, score, rel); checkAch(); }
   persist(); updateHud(); showHoleSheet(i,score);
 }
 

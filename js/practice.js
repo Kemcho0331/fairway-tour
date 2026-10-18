@@ -17,7 +17,7 @@ function cardTable(label, holes, offset){
 }
 function cardHTML(){
   const n=EV.holes.length, rel=playerScores.reduce((a,s,i)=>a+s-HOLES[i].par,0);
-  const tables=EV.rounds===2 ? cardTable('Round 1',EV.holes,0)+cardTable('Round 2',EV.holes,n) : cardTable(EV.practice?'Practice round':'Round',HOLES,0);
+  const tables=EV.rounds===2 ? cardTable('Round 1',EV.holes,0)+cardTable('Round 2',EV.holes,n) : cardTable(EV.daily?'Daily challenge':EV.practice?'Practice round':'Round',HOLES,0);
   return `<div class="cardsum"><b>${fmtPar(rel)}</b><span>${playerScores.length} of ${HOLES.length} holes · ${playerScores.reduce((a,b)=>a+b,0)} strokes</span></div>${tables}
     <div class="cardkey"><span class="sc eag">3</span> Eagle or better <span class="sc bir">4</span> Birdie <span class="sc bog">6</span> Bogey <span class="sc dbl">7</span> Double or worse</div>`;
 }

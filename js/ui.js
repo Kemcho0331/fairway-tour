@@ -18,16 +18,17 @@ function showHub(keepScroll){
       </div>
       <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${hubTab===k}">${l}</button>`).join('')}</div>
     </div>`;
-  const body=hubTab==='tour'?tourHTML():hubTab==='standings'?standingsHTML():hubTab==='career'?careerTabHTML():hubTab==='golfer'?golferHTML():shopHTML();
+  const body=hubTab==='tour'?tourHTML():hubTab==='standings'?standingsHTML():hubTab==='career'?careerViewHTML():hubTab==='golfer'?golferHTML():shopHTML();
   openSheet('hub', head + `<div class="sheet-body">${body}</div>`, null, keepScroll);
   sheet.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ if(hubTab!==b.dataset.tab){ hubTab=b.dataset.tab; Sound.tick(); showHub(); } });
-  sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='ngp') ngpTap(b); else if(a==='range') startRange(); else if(a==='practice') showPracticePicker(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
+  sheet.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ const a=b.dataset.act; if(a==='play') showPreTee(); else if(a==='ngp') ngpTap(b); else if(a==='range') startRange(); else if(a==='daily') startDaily(); else if(a==='practice') showPracticePicker(); else if(a==='simchamp') simulateChamp(); else if(a==='skipq'){ newYear(); persist(); toast(`Year ${career().year} starts. Back on the ${tierDef().name}.`,2400); showHub(); } });
   sheet.querySelectorAll('[data-xsort]').forEach(b=>b.onclick=()=>{ save.exclSort=b.dataset.xsort; persist(); Sound.tick(); showHub(true); });
   sheet.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUpgrade(b.dataset.up));
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));
   sheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>buyColor(b.dataset.color));
   sheet.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.g.split(':'); save.golfer[k]=k==='skin'?+v:k==='watch'?!!v:v; persist(); Sound.tick(); showHub(true); });
   wireBag(()=>showHub(true)); wireSchool();
+  sheet.querySelectorAll('[data-cv]').forEach(b=>b.onclick=()=>{ save.careerView=b.dataset.cv; persist(); Sound.tick(); showHub(); });
   const gn=$('#gname'); if(gn) gn.oninput=()=>{ save.golfer.name=gn.value.slice(0,16); persist(); };
   const st=$('#soundToggle'); if(st) st.onclick=()=>{ toggleSound(); st.textContent=Sound.muted?'Sound off':'Sound on'; };
 }
@@ -66,8 +67,8 @@ function tourHTML(){
   const rows=T.events.map((ev,k)=>{ const S=SEASONS[Math.floor(k/2)]; return row(k+1,ev,c.played[k],c.phase==='season'&&c.k===k,`<span class="chip-s" style="background:${S.color}">${S.name}</span>`); }).join('')
     + row('★',T.champEv,c.played.champ,c.phase==='champ','<span class="chip-s" style="background:var(--pine-2)">Top 6</span>')
     + (c.phase==='qschool'?row('Q',T.qEv,null,true,''):'');
-  return careerCard() + next + `<h3 class="sec">${tierSponsors(c.tier).length>1?'Sponsors':'Sponsor'}</h3><div>${sponsorSummary()}</div><h3 class="sec">${T.name} schedule · Year ${c.year}</h3><div class="sched">${rows}</div>
-    ${practiceButtons()}
+  return careerCard() + next + `<h3 class="sec">${tierSponsors(c.tier).length>1?'Sponsors':'Sponsor'}</h3><div>${sponsorSummary()}</div>${wireHTML()}<h3 class="sec">${T.name} schedule · Year ${c.year}</h3><div class="sched">${rows}</div>
+    ${practiceButtons()}${dailyCardHTML()}
     <details class="how"><summary>How to play</summary><ul class="howto">
       <li>Drag back from anywhere and let go to swing. A longer pull hits harder.</li>
       <li>Pull past the white tick to overswing. You get extra distance, but risk a hook or slice.</li>
@@ -164,10 +165,10 @@ function showHoleSheet(i,score){
       <span class="head-sub">${score} stroke${score===1?'':'s'}${score>=MAX_STROKES?' (picked up)':''}</span>
     </div>
     <div class="sheet-body">
-      ${live()?nemHoleLine(i)+goalHoleHTML()+boardHTML():cardHTML()}
+      ${live()?nemHoleLine(i)+goalHoleHTML()+boardHTML():(EV.daily?boardHTML():'')+cardHTML()}
       <div class="row"><button class="btn primary" id="nextBtn" type="button">${last?'Final results':cutHole?'Round 1 results':'Next hole'}</button></div>
     </div>`, '#nextBtn');
-  $('#nextBtn').onclick=()=>{ closeSheet(); if(last){ if(live()) showResults(); else showPracticeDone(); } else if(cutHole) showCut(); else { startHole(i+1); beginIntro(); } };
+  $('#nextBtn').onclick=()=>{ closeSheet(); if(last){ if(live()) showResults(); else if(EV.daily) finishDaily(); else showPracticeDone(); } else if(cutHole) showCut(); else { startHole(i+1); beginIntro(); } };
 }
 function playCurrent(){
   EV=currentEvent(); Sound.init();
@@ -256,6 +257,8 @@ function finishEvent(wd, mc){
   if(!wd){ s.sets=s.sets||{}; s.sets[EV.set]=1; }
   if(!out && RS){ if(RS.bogeys===0 && HOLES.length>=6) s.cleanCards=(s.cleanCards||0)+1; if(RS.pens===0 && HOLES.length>=9) s.dryNines=(s.dryNines||0)+1;
     if(champ){ s.seasonWins=s.seasonWins||{}; s.seasonWins[prevSeason]=1; if(RS.ledAll) s.wires=(s.wires||0)+1; if(RS.maxDef>=3) s.comebacks=(s.comebacks||0)+1; } }
+  if(!wd) statsEvent(mc?totals[0]-1000:totals[0], mc?RN:HOLES.length, label);
+  wireAfterEvent({totals, keys, order, outright, champ, label, wd, mc, tierAt});
   checkAch(false,true); const achNote=achResultsHTML(); persist();
   const rows=tableRows(), rk=rows.findIndex(x=>x.you)+1;
   openSheet('results',`
@@ -338,7 +341,7 @@ function showBoard(){
   if(sheetKind || state==='menu') return;
   if(EV.range) return showRangeSheet();
   if(EV.practice){ openSheet('board',`<div class="sheet-head"><span class="kicker">${EV.name} · practice</span><span class="title">Scorecard</span></div>
-      <div class="sheet-body">${cardHTML()}<div class="row"><button class="btn primary" id="backBtn" type="button">Back to the course</button><button class="btn ghost" id="endBtn" type="button">End practice</button></div></div>`, '#backBtn');
+      <div class="sheet-body">${EV.daily?boardHTML():''}${cardHTML()}<div class="row"><button class="btn primary" id="backBtn" type="button">Back to the course</button><button class="btn ghost" id="endBtn" type="button">End practice</button></div></div>`, '#backBtn');
     $('#backBtn').onclick=closeSheet; $('#endBtn').onclick=()=>{ aim=null; hubTab='tour'; showHub(); }; return; }
   openSheet('board',`
     <div class="sheet-head"><span class="kicker">Leaderboard · after ${playerScores.length} of ${HOLES.length}</span><span class="title">${EV.name}</span></div>

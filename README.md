@@ -38,6 +38,9 @@ js/achievements.js  58 achievements, popups, and the Career tab list
 js/practice.js    driving range, free practice, and the scorecard
 js/shaping.js     shot shaping: lessons, drills, mastery, shaped-shot physics
 js/newgame.js     New Game+
+js/stats.js       career stats and the Stats view
+js/daily.js       daily challenge
+js/wire.js        Tour Wire news feed
 js/main.js        starts the game
 ```
 
@@ -82,6 +85,9 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - A scorecard button during rounds, with birdie circles and bogey squares, both rounds of a major, and your nemesis's card
 - Shot shaping you earn: pay a coach for Shot School lessons (Low and High on the Mini-Tour, Draw and Fade on the Challenger Tour, the Nine-Shot Exam on the Pro Tour), pass a drill at the range to unlock each shot, then build mastery from Learning to Solid to Mastered by using it
 - Shaped shots bend the aim line, with a wider band while you are still learning; low shots stay under the wind and branches, high shots stop fast, draws run out, fades land soft, and Learning shots wobble more on the last hole of a major
+- A Stats view in the Career tab: scoring per hole, fairways, greens in regulation, putts, scrambling, sand saves, 3-putts, driving average, scoring by par, a scoring trend chart, and a breakdown of every hole you have played
+- A daily challenge: one 6-hole course a day from any setting, the same five rivals for everyone, best score and streak tracked, and nothing touching your career
+- The Tour Wire: a news feed in the clubhouse with results, nemesis trash talk, moves between tours, Hall of Fame inductions, and tour gossip
 - New Game+ after you become Texas Champion: start over on the Amateur tour with your look, cosmetics, and achievements, against sharper rivals on every tour, with past careers saved in the Career tab
 - A 1,000-point Hall of Fame earned only on the National Tour, with an induction ceremony, a wall of legends, and rare rival inductees
 - A nemesis who emerges from a close finish, follows you up the tiers, and plays as a Bomber, Grinder, or Showman; beat them 5 times to settle the rivalry

@@ -343,6 +343,10 @@ details.how summary{cursor:pointer;font:600 12px/1.2 var(--body);letter-spacing:
 .wpost{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;padding:9px 0;border-bottom:1px solid var(--rule);font:500 13.5px/1.4 var(--body)}
 .wpost small{grid-column:2;font:500 11px/1.2 var(--body);color:var(--muted)}
 .wtag{font:700 10px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--wc);padding:4px 6px;border-radius:3px;align-self:start;margin-top:2px}
+.backup{display:flex;flex-direction:column;gap:10px}
+.backup textarea{width:100%;font:500 12px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:10px;border:1.5px solid var(--rule);border-radius:6px;background:#fff;color:var(--ink);resize:vertical;word-break:break-all;-webkit-user-select:text;user-select:text}
+.backup textarea:focus{outline:3px solid var(--flag);outline-offset:1px;border-color:var(--ink)}
+.bkmsg{font:500 12.5px/1.4 var(--body);color:var(--muted);min-height:1em}
 @media (prefers-reduced-motion:reduce){
   .toast,.banner,.val svg,.achpop{transition:none}
 }

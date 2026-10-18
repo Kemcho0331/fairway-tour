@@ -41,6 +41,7 @@ js/newgame.js     New Game+
 js/stats.js       career stats and the Stats view
 js/daily.js       daily challenge
 js/wire.js        Tour Wire news feed
+js/backup.js      save codes for backup and moving between devices
 js/main.js        starts the game
 ```
 
@@ -94,4 +95,4 @@ The scripts are classic `<script>` tags loaded in order and share one global sco
 - A Career tab with stats, nemesis history, and a trophy case for championships, majors, tour cards, Q-School, Player of the Year, and rivalries
 - Generated music and sound effects
 - Customizable golfer with a name, skin tone, shirt, pants, and hat, plus a full swing animation
-- Progress saves in the browser (localStorage)
+- Progress saves in the browser (localStorage); the Golfer tab can copy your career as a save code and load one, for backups or moving between your phone and computer

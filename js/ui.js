@@ -27,7 +27,7 @@ function showHub(keepScroll){
   sheet.querySelectorAll('[data-ball]').forEach(b=>b.onclick=()=>buyBall(b.dataset.ball));
   sheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>buyColor(b.dataset.color));
   sheet.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.g.split(':'); save.golfer[k]=k==='skin'?+v:k==='watch'?!!v:v; persist(); Sound.tick(); showHub(true); });
-  wireBag(()=>showHub(true)); wireSchool();
+  wireBag(()=>showHub(true)); wireSchool(); wireBackup();
   sheet.querySelectorAll('[data-cv]').forEach(b=>b.onclick=()=>{ save.careerView=b.dataset.cv; persist(); Sound.tick(); showHub(); });
   const gn=$('#gname'); if(gn) gn.oninput=()=>{ save.golfer.name=gn.value.slice(0,16); persist(); };
   const st=$('#soundToggle'); if(st) st.onclick=()=>{ toggleSound(); st.textContent=Sound.muted?'Sound off':'Sound on'; };
@@ -111,7 +111,8 @@ function golferHTML(){
     <div class="opt"><span class="lbl">Hat</span><div class="chips">${chips('hat',LOOK.hats,g.hat,true)}</div></div>
     ${g.hat!=='none'?`<div class="opt"><span class="lbl">Hat color</span><div class="chips">${chips('hatColor',hats,g.hatColor)}</div></div>`:''}
     ${hasItem('capwatch')?`<div class="opt"><span class="lbl">Capitol Chronograph</span><div class="chips"><button class="tchip" type="button" data-g="watch:1" aria-pressed="${!!g.watch}">On</button><button class="tchip" type="button" data-g="watch:" aria-pressed="${!g.watch}">Off</button></div></div>`:''}
-    <div class="career">Gold-ringed swatches are sponsor exclusives. Earn more in the Career tab's sponsor gear list.</div>`;
+    <div class="career">Gold-ringed swatches are sponsor exclusives. Earn more in the Career tab's sponsor gear list.</div>
+    <h3 class="sec">Save backup</h3>${backupHTML()}`;
 }
 function pips(t){ return `<span class="pips" aria-label="Tier ${t} of 4">${[1,2,3,4].map(k=>`<i class="${k<=t?'on':''}"></i>`).join('')}</span>`; }
 function shopHTML(){
